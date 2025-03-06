@@ -225,6 +225,15 @@ jobs:
           path: ${{ env.LINT_REPORT_FILE }}.json
           retention-days: 1
 
+      - name: Check If File Exists
+        id: check_lint_report
+        run: |
+          if [[ -f "${{ env.LINT_REPORT_FILE }}.json" ]] ; then
+            echo "lint_report=true" >> ${GITHUB_OUTPUT}
+          fi
+    outputs:
+      lint_report: ${{ steps.check_lint_report.outputs.lint_report }}
+
   javelin-notify:
     needs:
       - javelin-env
@@ -245,6 +254,7 @@ jobs:
       SAST_JOB_STATUS: ${{ needs.javelin-sast-check.result }}
       COMMIT_JOB_STATUS: ${{ needs.javelin-commit-check.result }}
       LINT_JOB_STATUS: ${{ needs.javelin-lint-check.result }}
+      LINT_REPORT_EXIST: ${{ needs.javelin-lint-check.outputs.lint_report }}
       PR_URL: "https://github.com/${{ github.repository }}/pull/${{ github.event.number }}"
       BUILD_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
       PR_AUTHOR: ${{ github.event.pull_request.user.login }}
@@ -261,6 +271,7 @@ jobs:
           path: ${{ env.DEVOPS_REPO }}
 
       - name: Download Report
+        if: ${{ env.LINT_REPORT_EXIST == 'true' }}
         uses: actions/download-artifact@v4
         with:
           name: "${{ env.LINT_REPORT_FILE }}"
@@ -280,6 +291,7 @@ jobs:
           payload-file-path: "${{ env.SLACK_PAYLOAD_JSON }}"
 
       - name: Upload Report to Slack
+        if: ${{ env.LINT_REPORT_EXIST == 'true' }}
         uses: slackapi/slack-github-action@v2.0.0
         with:
           method: files.uploadV2
