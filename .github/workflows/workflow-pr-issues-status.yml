@@ -14,6 +14,8 @@ on:
     secrets:
       DEVOPS_GITHUB_TOKEN:
         required: true
+      DEVOPS_GITHUB_TOKEN_CLASSIC:
+        required: true
       SLACK_BOT_TOKEN:
         required: true
 
