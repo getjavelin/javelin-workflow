@@ -85,11 +85,11 @@ runs:
 
         case "${{ inputs.SVC_NAME }}" in
           "javelin-core")
-              kubectl -n ${{ env.K8S_NAMESPACE }} create secret generic ${{ env.SVC_NAME }}-file --from-file=javelin-gcpjson.json
+              kubectl -n ${{ inputs.K8S_NAMESPACE }} create secret generic ${{ inputs.SVC_NAME }}-file --from-file=javelin-gcpjson.json
               rm -rf javelin-gcpjson.json
             ;;
           "javelin-flag")
-              kubectl -n ${{ env.K8S_NAMESPACE }} create secret generic ${{ env.SVC_NAME }}-file --from-file=javelin.goff.yaml
+              kubectl -n ${{ inputs.K8S_NAMESPACE }} create secret generic ${{ inputs.SVC_NAME }}-file --from-file=javelin.goff.yaml
             ;;
           *)
               echo "No custom configuration for the service ${{ inputs.SVC_NAME }}"
