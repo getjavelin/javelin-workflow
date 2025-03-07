@@ -85,10 +85,14 @@ runs:
 
         case "${{ inputs.SVC_NAME }}" in
           "javelin-core")
+              kubectl -n ${{ inputs.K8S_NAMESPACE }} delete secret ${{ inputs.SVC_NAME }}-file || echo "K8s secret ${{ inputs.SVC_NAME }}-file not found"
+              sleep 10
               kubectl -n ${{ inputs.K8S_NAMESPACE }} create secret generic ${{ inputs.SVC_NAME }}-file --from-file=javelin-gcpjson.json
               rm -rf javelin-gcpjson.json
             ;;
           "javelin-flag")
+              kubectl -n ${{ inputs.K8S_NAMESPACE }} delete secret ${{ inputs.SVC_NAME }}-file || echo "K8s secret ${{ inputs.SVC_NAME }}-file not found"
+              sleep 10
               kubectl -n ${{ inputs.K8S_NAMESPACE }} create secret generic ${{ inputs.SVC_NAME }}-file --from-file=javelin.goff.yaml
             ;;
           *)
