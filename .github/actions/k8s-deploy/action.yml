@@ -1,0 +1,135 @@
+name: Composite Action - K8s Deploy
+description: Deploying Helm Charts into Kubernetes
+
+inputs:
+  REGION:
+    required: true
+    type: string
+  K8S_CLUSTER_TYPE:
+    required: true
+    type: string
+  K8S_CLUSTER_NAME:
+    required: true
+    type: string
+  K8S_NAMESPACE:
+    required: true
+    type: string
+  SVC_NAME:
+    required: true
+    type: string
+  HELM_CHART:
+    required: true
+    type: string
+  RELEASE_MODE:
+    required: true
+    type: string
+  HELM_TIMEOUT:
+    required: false
+    type: string
+    default: "900s"
+  GCP_WIP_PROVIDER:
+    required: false
+    type: string
+  CICD_SA:
+    required: false
+    type: string
+  AWS_ACCOUNT_ID:
+    required: false
+    type: string
+  CICD_ROLE:
+    required: false
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Helm Installation
+      uses: azure/setup-helm@v4
+
+    - name: Configure GCP credentials
+      if: ${{ inputs.K8S_CLUSTER_TYPE == 'gke' }}
+      uses: google-github-actions/auth@v2
+      with:
+        workload_identity_provider: ${{ inputs.GCP_WIP_PROVIDER }}
+        service_account: ${{ inputs.CICD_SA }}
+        token_format: access_token
+        create_credentials_file: true
+
+    - name: Login to GKE
+      if: ${{ inputs.K8S_CLUSTER_TYPE == 'gke' }}
+      uses: google-github-actions/get-gke-credentials@v2
+      with:
+        cluster_name: ${{ inputs.K8S_CLUSTER_NAME }}
+        location: ${{ inputs.REGION }}
+
+    - name: Configure AWS credentials
+      if: ${{ inputs.K8S_CLUSTER_TYPE == 'eks' }}
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: "arn:aws:iam::${{ inputs.AWS_ACCOUNT_ID }}:role/${{ inputs.CICD_ROLE }}"
+        role-session-name: ${{ inputs.CICD_ROLE }}
+        audience: sts.amazonaws.com
+        aws-region: ${{ inputs.REGION }}
+
+    - name: Login to EKS
+      if: ${{ inputs.K8S_CLUSTER_TYPE == 'eks' }}
+      shell: bash
+      run: |-
+        aws eks --region ${{ inputs.REGION }} update-kubeconfig --name ${{ inputs.K8S_CLUSTER_NAME }}
+
+    - name: Deploying Helm Chart
+      shell: bash
+      run: |-
+        kubectl get ns ${{ inputs.K8S_NAMESPACE }} || kubectl create ns ${{ inputs.K8S_NAMESPACE }}
+        sleep 5
+
+        case "${{ inputs.SVC_NAME }}" in
+          "javelin-core")
+              kubectl -n ${{ env.K8S_NAMESPACE }} create secret generic ${{ env.SVC_NAME }}-file --from-file=javelin-gcpjson.json
+              rm -rf javelin-gcpjson.json
+            ;;
+          "javelin-flag")
+              kubectl -n ${{ env.K8S_NAMESPACE }} create secret generic ${{ env.SVC_NAME }}-file --from-file=javelin.goff.yaml
+            ;;
+          *)
+              echo "No custom configuration for the service ${{ inputs.SVC_NAME }}"
+            ;;
+        esac
+
+        if [[ -f set-env.sh ]] ; then
+          if kubectl -n ${{ inputs.K8S_NAMESPACE }} get secrets ${{ inputs.SVC_NAME }}-env ; then
+            kubectl -n ${{ inputs.K8S_NAMESPACE }} delete secrets ${{ inputs.SVC_NAME }}-env
+            sleep 5
+          fi
+
+          kubectl -n ${{ inputs.K8S_NAMESPACE }} create secret generic ${{ inputs.SVC_NAME }}-env --from-file=set-env.sh
+        fi
+
+        helm repo add ${{ inputs.SVC_NAME }} "${{ inputs.HELM_CHART }}"
+        helm repo update
+        helm search repo ${{ inputs.SVC_NAME }}
+        # helm search repo ${{ inputs.SVC_NAME }} --versions --devel
+
+        HELM_RELEASE_CHECK="checking"
+        helm status ${{ inputs.SVC_NAME }} --namespace ${{ inputs.K8S_NAMESPACE }} || HELM_RELEASE_CHECK="not-present"
+
+        if [[ ${HELM_RELEASE_CHECK} == "not-present" ]] ; then
+          HELM_CMD="install"
+        else
+          if [[ ${{ inputs.RELEASE_MODE }} == "reinstall" ]] ; then
+            helm uninstall ${{ inputs.SVC_NAME }} --namespace ${{ inputs.K8S_NAMESPACE }}
+            sleep 5
+            HELM_CMD="install"
+          else
+            HELM_CMD="upgrade"
+          fi
+        fi
+
+        helm "${HELM_CMD}" ${{ inputs.SVC_NAME }} ${{ inputs.SVC_NAME }}/${{ inputs.SVC_NAME }} \
+          --namespace ${{ inputs.K8S_NAMESPACE }} \
+          -f helm-values.yml
+
+        kubectl --namespace ${{ inputs.K8S_NAMESPACE }} rollout status deploy ${{ inputs.SVC_NAME }} --timeout=${{ inputs.HELM_TIMEOUT }}
+
+        helm repo remove ${{ inputs.SVC_NAME }}
+        rm -rf ~/.kube helm-values.yml

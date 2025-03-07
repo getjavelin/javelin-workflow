@@ -11,6 +11,10 @@ on:
         required: false
         type: string
         default: "main"
+      PIPELINE_DEBUG:
+        required: false
+        type: string
+        default: "disable"
     secrets:
       DEVOPS_GITHUB_TOKEN:
         required: true
@@ -21,6 +25,7 @@ env:
   env_var: ${{ vars.ENV_CONTEXT_VAR }}
   DEVOPS_REPO: ${{ inputs.DEVOPS_REPO }}
   DEVOPS_BRANCH: ${{ inputs.DEVOPS_BRANCH }}
+  PIPELINE_DEBUG: ${{ inputs.PIPELINE_DEBUG }}
   GH_SEC_REPORT: false
   TRIVY_REPORT_FILE: "trivy-scan-result"
 
@@ -191,7 +196,9 @@ jobs:
             export PAYLOAD_JSON="slack-trivy-scan-file-payload.json"
           fi
           envsubst < ${{ env.DEVOPS_REPO }}/slack-notify/${PAYLOAD_JSON} > ${{ env.SLACK_PAYLOAD_JSON }}
-          cat ${{ env.SLACK_PAYLOAD_JSON }}
+          if [[ ${{ env.PIPELINE_DEBUG == 'enable' }} ]] ; then
+            cat ${{ env.SLACK_PAYLOAD_JSON }}
+          fi
 
       - name: Slack Notification
         uses: slackapi/slack-github-action@v2.0.0

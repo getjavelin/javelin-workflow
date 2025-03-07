@@ -11,6 +11,10 @@ on:
         required: false
         type: string
         default: "main"
+      PIPELINE_DEBUG:
+        required: false
+        type: string
+        default: "disable"
     secrets:
       DEVOPS_GITHUB_TOKEN:
         required: true
@@ -21,6 +25,7 @@ env:
   env_var: ${{ vars.ENV_CONTEXT_VAR }}
   DEVOPS_REPO: ${{ inputs.DEVOPS_REPO }}
   DEVOPS_BRANCH: ${{ inputs.DEVOPS_BRANCH }}
+  PIPELINE_DEBUG: ${{ inputs.PIPELINE_DEBUG }}
   PY_LINT_CFG: ".flake8"
   GO_LINT_CFG: ".golangci.yml"
   NODE_LINT_CFG: "eslint.config.js"
@@ -280,7 +285,9 @@ jobs:
         shell: bash
         run: |-
           envsubst < ${{ env.DEVOPS_REPO }}/slack-notify/${{ env.SLACK_PAYLOAD_JSON }} > ${{ env.SLACK_PAYLOAD_JSON }}
-          cat ${{ env.SLACK_PAYLOAD_JSON }}
+          if [[ ${{ env.PIPELINE_DEBUG == 'enable' }} ]] ; then
+            cat ${{ env.SLACK_PAYLOAD_JSON }}
+          fi
 
       - name: Slack Notification
         id: slack_notify
