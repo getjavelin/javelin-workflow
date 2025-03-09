@@ -203,9 +203,11 @@ jobs:
         if: ${{ needs.javelin-env.outputs.lint_lan == 'javascript' }}
         shell: bash
         run: |-
-          npm install eslint@latest
-          # npm init @eslint/config@latest
-          npx eslint . --config ${{ env.NODE_LINT_CFG }} --format json --output-file ${{ env.LINT_REPORT_FILE }}.json
+          # npm install eslint@latest
+          # npx eslint . --config ${{ env.NODE_LINT_CFG }} --format json --output-file ${{ env.LINT_REPORT_FILE }}.json
+          npm install
+          npm run lint
+          npm run prettier
 
       - name: Setup Golang Version
         if: ${{ needs.javelin-env.outputs.lint_lan == 'go' }}
