@@ -1,0 +1,94 @@
+name: Reusable Workflow - Release Env
+
+on:
+  workflow_call:
+    inputs:
+      DEVOPS_REPO:
+        required: false
+        type: string
+        default: "javelin-cloud"
+      DEVOPS_BRANCH:
+        required: false
+        type: string
+        default: "main"
+    secrets:
+      DEVOPS_GITHUB_TOKEN:
+        required: true
+
+env:
+  DEVOPS_REPO: ${{ inputs.DEVOPS_REPO }}
+  DEVOPS_BRANCH: ${{ inputs.DEVOPS_BRANCH }}
+
+jobs:
+  javelin-env:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setting up Repo Env
+        id: repo_env_setup
+        shell: bash
+        run: |-
+          echo "repository=$(basename ${{ github.repository }})" >> ${GITHUB_OUTPUT}
+          echo "shortsha=$(git rev-parse --short=7 HEAD)" >> ${GITHUB_OUTPUT}
+          echo "build_env=release" >> ${GITHUB_OUTPUT}
+
+      - name: Set Lowercase Repo Name
+        id: lc_repository
+        env:
+          REPO_NAME: ${{ steps.repo_env_setup.outputs.repository }}
+        shell: bash
+        run: echo "name=${REPO_NAME,,}" >> ${GITHUB_OUTPUT}
+
+      - name: DevOps Repository Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: "${{ github.repository_owner }}/${{ env.DEVOPS_REPO }}"
+          token: ${{ secrets.DEVOPS_GITHUB_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ env.DEVOPS_BRANCH }}
+          path: ${{ env.DEVOPS_REPO }}
+
+      - name: Get Build Config
+        id: build_config
+        env:
+          SVC_NAME: ${{ steps.lc_repository.outputs.name }}
+        shell: bash
+        run: |-
+          if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/build-config.json ]] ; then
+            build_platform=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/build-config.json | jq -c '.platform.${{ env.PIPELINE_ROLE }} | split(", ")')
+          else
+            build_platform=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/build-config.json | jq -c '.platform.${{ env.PIPELINE_ROLE }} | split(", ")')
+          fi
+
+          if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/deploy-config.json ]] ; then
+            release_mode=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/deploy-config.json | jq -r '.release.mode')
+            environment=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/build-config.json | jq -c '.type.${{ env.PIPELINE_ROLE }} | split(", ")')
+          else
+            release_mode=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/deploy-config.json | jq -r '.release.mode')
+            environment=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/build-config.json | jq -c '.type.${{ env.PIPELINE_ROLE }} | split(", ")')
+          fi
+
+          chglog_pr_reviewers=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/release-config.json | jq -r '.changelog.pr_reviewers')
+          slack_release_channel_id=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/notify-config.json | jq -r '.slack.release.channel_id')
+          echo "build_platform=${build_platform}" >> ${GITHUB_OUTPUT}
+          echo "chglog_pr_reviewers=${chglog_pr_reviewers}" >> ${GITHUB_OUTPUT}
+          echo "release_mode=${release_mode}" >> ${GITHUB_OUTPUT}
+          echo "environment=${environment}" >> ${GITHUB_OUTPUT}
+          echo "slack_release_channel_id=${slack_release_channel_id}" >> ${GITHUB_OUTPUT}
+    outputs:
+      build_env: ${{ steps.repo_env_setup.outputs.build_env }}
+      short_sha: ${{ steps.repo_env_setup.outputs.shortsha }}
+      lc_repository: ${{ steps.lc_repository.outputs.name }}
+      build_platform: ${{ steps.build_config.outputs.build_platform }}
+      release_mode: ${{ steps.build_config.outputs.release_mode }}
+      environment: ${{ steps.build_config.outputs.environment }}
+      chglog_pr_reviewers: ${{ steps.build_config.outputs.chglog_pr_reviewers }}
+      slack_release_channel_id: ${{ steps.build_config.outputs.slack_scan_channel_id }}
