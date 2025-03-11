@@ -19,6 +19,7 @@ on:
         required: true
 
 env:
+  PIPELINE_ROLE: ${{ inputs.PIPELINE_ROLE }}
   DEVOPS_REPO: ${{ inputs.DEVOPS_REPO }}
   DEVOPS_BRANCH: ${{ inputs.DEVOPS_BRANCH }}
 
