@@ -3,6 +3,9 @@ name: Reusable Workflow - Release Env
 on:
   workflow_call:
     inputs:
+      PIPELINE_ROLE:
+        required: true
+        type: string
       DEVOPS_REPO:
         required: false
         type: string
