@@ -147,7 +147,8 @@ jobs:
       contents: 'read'
       id-token: 'write'
     runs-on: ubuntu-24.04
-    if: always()
+    if: |
+      always() && (needs.javelin-chglog.result == 'success')
     env:
       CHGLOG_PR_URL: ${{ needs.javelin-chglog.outputs.pr_url }}
       CHGLOG_PR_NUM: ${{ needs.javelin-chglog.outputs.pr_num }}
