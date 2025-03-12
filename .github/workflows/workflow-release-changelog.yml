@@ -80,7 +80,7 @@ jobs:
           echo "slack_release_channel_id=${slack_release_channel_id}" >> ${GITHUB_OUTPUT}
     outputs:
       lc_repository: ${{ steps.lc_repository.outputs.name }}
-      slack_release_channel_id: ${{ steps.build_config.outputs.slack_scan_channel_id }}
+      slack_release_channel_id: ${{ steps.build_config.outputs.slack_release_channel_id }}
       chglog_pr_reviewers: ${{ steps.build_config.outputs.chglog_pr_reviewers }}
 
   javelin-chglog:
