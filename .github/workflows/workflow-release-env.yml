@@ -30,8 +30,14 @@ on:
         value: ${{ jobs.javelin-env.outputs.release_mode }}
       environment:
         value: ${{ jobs.javelin-env.outputs.environment }}
+      dependant_repos:
+        value: ${{ jobs.javelin-env.outputs.dependant_repos }}
+      dependant_branch:
+        value: ${{ jobs.javelin-env.outputs.dependant_branch }}
       chglog_pr_reviewers:
         value: ${{ jobs.javelin-env.outputs.chglog_pr_reviewers }}
+      sharedlibs_pr_reviewers:
+        value: ${{ jobs.javelin-env.outputs.sharedlibs_pr_reviewers }}
       slack_release_channel_id:
         value: ${{ jobs.javelin-env.outputs.slack_release_channel_id }}
 
@@ -85,8 +91,12 @@ jobs:
         run: |-
           if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/build-config.json ]] ; then
             build_platform=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/build-config.json | jq -c '.platform.${{ env.PIPELINE_ROLE }} | split(", ")')
+            dependant_repos=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/build-config.json | jq -c '.dependant.repos | split(", ")')
+            dependant_branch=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/build-config.json | jq -r '.dependant.branch')
           else
             build_platform=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/build-config.json | jq -c '.platform.${{ env.PIPELINE_ROLE }} | split(", ")')
+            dependant_repos=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/build-config.json | jq -c '.dependant.repos | split(", ")')
+            dependant_branch=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/build-config.json | jq -r '.dependant.branch')
           fi
 
           if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/deploy-config.json ]] ; then
@@ -98,9 +108,12 @@ jobs:
           fi
 
           chglog_pr_reviewers=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/release-config.json | jq -r '.changelog.pr_reviewers')
+          sharedlibs_pr_reviewers=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/release-config.json | jq -r '.sharedlibs.pr_reviewers')
           slack_release_channel_id=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/notify-config.json | jq -r '.slack.release.channel_id')
+          
           echo "build_platform=${build_platform}" >> ${GITHUB_OUTPUT}
           echo "chglog_pr_reviewers=${chglog_pr_reviewers}" >> ${GITHUB_OUTPUT}
+          echo "sharedlibs_pr_reviewers=${sharedlibs_pr_reviewers}" >> ${GITHUB_OUTPUT}
           echo "release_mode=${release_mode}" >> ${GITHUB_OUTPUT}
           echo "environment=${environment}" >> ${GITHUB_OUTPUT}
           echo "slack_release_channel_id=${slack_release_channel_id}" >> ${GITHUB_OUTPUT}
@@ -111,5 +124,8 @@ jobs:
       build_platform: ${{ steps.build_config.outputs.build_platform }}
       release_mode: ${{ steps.build_config.outputs.release_mode }}
       environment: ${{ steps.build_config.outputs.environment }}
+      dependant_repos: ${{ steps.build_config.outputs.dependant_repos }}
+      dependant_branch: ${{ steps.build_config.outputs.dependant_branch }}
+      sharedlibs_pr_reviewers: ${{ steps.build_config.outputs.sharedlibs_pr_reviewers }}
       chglog_pr_reviewers: ${{ steps.build_config.outputs.chglog_pr_reviewers }}
       slack_release_channel_id: ${{ steps.build_config.outputs.slack_release_channel_id }}
