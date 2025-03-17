@@ -91,12 +91,8 @@ jobs:
         run: |-
           if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/build-config.json ]] ; then
             build_platform=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/build-config.json | jq -c '.platform.${{ env.PIPELINE_ROLE }} | split(", ")')
-            dependant_repos=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/build-config.json | jq -c '.dependant.repos | split(", ")')
-            dependant_branch=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/build-config.json | jq -r '.dependant.branch')
           else
             build_platform=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/build-config.json | jq -c '.platform.${{ env.PIPELINE_ROLE }} | split(", ")')
-            dependant_repos=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/build-config.json | jq -c '.dependant.repos | split(", ")')
-            dependant_branch=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/build-config.json | jq -r '.dependant.branch')
           fi
 
           if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/deploy-config.json ]] ; then
@@ -105,6 +101,12 @@ jobs:
           else
             release_mode=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/deploy-config.json | jq -r '.release.mode')
             environment=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/deploy-config.json | jq -c '.type.${{ env.PIPELINE_ROLE }} | split(", ")')
+          fi
+
+          # Custom service
+          if [[ ${{ env.SVC_NAME }} == "shared-libs" ]] ; then
+            dependant_repos=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/build-config.json | jq -c '.dependant.repos | split(", ")')
+            dependant_branch=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/build-config.json | jq -r '.dependant.branch')
           fi
 
           chglog_pr_reviewers=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/release-config.json | jq -r '.changelog.pr_reviewers')
