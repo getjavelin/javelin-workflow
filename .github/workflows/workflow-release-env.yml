@@ -14,6 +14,10 @@ on:
         required: false
         type: string
         default: "main"
+      INPUT_SVC_NAME:
+        required: false
+        type: string
+        default: ""
     secrets:
       DEVOPS_GITHUB_TOKEN:
         required: true
@@ -45,6 +49,7 @@ env:
   PIPELINE_ROLE: ${{ inputs.PIPELINE_ROLE }}
   DEVOPS_REPO: ${{ inputs.DEVOPS_REPO }}
   DEVOPS_BRANCH: ${{ inputs.DEVOPS_BRANCH }}
+  INPUT_SVC_NAME: ${{ inputs.INPUT_SVC_NAME }}
 
 jobs:
   javelin-env:
@@ -86,27 +91,33 @@ jobs:
       - name: Get Build Config
         id: build_config
         env:
-          SVC_NAME: ${{ steps.lc_repository.outputs.name }}
+          SELF_SVC_NAME: ${{ steps.lc_repository.outputs.name }}
         shell: bash
         run: |-
-          if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/build-config.json ]] ; then
-            build_platform=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/build-config.json | jq -c '.platform.${{ env.PIPELINE_ROLE }} | split(", ")')
+          if [[ ${{ env.INPUT_SVC_NAME }} == "" ]] ; then
+            export SVC_NAME=${{ env.SELF_SVC_NAME }}
+          else
+            export SVC_NAME=${{ env.INPUT_SVC_NAME }}
+          fi
+
+          if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/build-config.json ]] ; then
+            build_platform=$(cat ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/build-config.json | jq -c '.platform.${{ env.PIPELINE_ROLE }} | split(", ")')
           else
             build_platform=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/build-config.json | jq -c '.platform.${{ env.PIPELINE_ROLE }} | split(", ")')
           fi
 
-          if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/deploy-config.json ]] ; then
-            release_mode=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/deploy-config.json | jq -r '.release.mode')
-            environment=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/deploy-config.json | jq -c '.type.${{ env.PIPELINE_ROLE }} | split(", ")')
+          if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/deploy-config.json ]] ; then
+            release_mode=$(cat ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/deploy-config.json | jq -r '.release.mode')
+            environment=$(cat ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/deploy-config.json | jq -c '.type.${{ env.PIPELINE_ROLE }} | split(", ")')
           else
             release_mode=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/deploy-config.json | jq -r '.release.mode')
             environment=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/deploy-config.json | jq -c '.type.${{ env.PIPELINE_ROLE }} | split(", ")')
           fi
 
           # Custom service
-          if [[ ${{ env.SVC_NAME }} == "shared-libs" ]] ; then
-            dependant_repos=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/build-config.json | jq -c '.dependant.repos | split(", ")')
-            dependant_branch=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ env.SVC_NAME }}/build-config.json | jq -r '.dependant.branch')
+          if [[ ${SVC_NAME} == "shared-libs" ]] ; then
+            dependant_repos=$(cat ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/build-config.json | jq -c '.dependant.repos | split(", ")')
+            dependant_branch=$(cat ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/build-config.json | jq -r '.dependant.branch')
           fi
 
           chglog_pr_reviewers=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/release-config.json | jq -r '.changelog.pr_reviewers')
