@@ -38,6 +38,8 @@ on:
         value: ${{ jobs.javelin-env.outputs.environment_string }}
       slack_release_channel_id:
         value: ${{ jobs.javelin-env.outputs.slack_release_channel_id }}
+      swagger_pr_reviewers:
+        value: ${{ jobs.javelin-env.outputs.swagger_pr_reviewers }}
 
 env:
   PIPELINE_ROLE: ${{ inputs.PIPELINE_ROLE }}
@@ -110,11 +112,13 @@ jobs:
             environment_string=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/deploy-config.json | jq -r '.type.${{ env.PIPELINE_ROLE }}')
           fi
 
+          swagger_pr_reviewers=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/release-config.json | jq -r '.swagger.pr_reviewers')
           slack_release_channel_id=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/notify-config.json | jq -r '.slack.release.channel_id')
           echo "build_platform=${build_platform}" >> ${GITHUB_OUTPUT}
           echo "release_mode=${release_mode}" >> ${GITHUB_OUTPUT}
           echo "environment=${environment}" >> ${GITHUB_OUTPUT}
           echo "environment_string=${environment_string}" >> ${GITHUB_OUTPUT}
+          echo "swagger_pr_reviewers=${swagger_pr_reviewers}" >> ${GITHUB_OUTPUT}
           echo "slack_release_channel_id=${slack_release_channel_id}" >> ${GITHUB_OUTPUT}
     outputs:
       build_env: ${{ steps.repo_env_setup.outputs.build_env }}
@@ -124,4 +128,5 @@ jobs:
       release_mode: ${{ steps.build_config.outputs.release_mode }}
       environment: ${{ steps.build_config.outputs.environment }}
       environment_string: ${{ steps.build_config.outputs.environment_string }}
+      swagger_pr_reviewers: ${{ steps.build_config.outputs.swagger_pr_reviewers }}
       slack_release_channel_id: ${{ steps.build_config.outputs.slack_release_channel_id }}
