@@ -94,7 +94,7 @@ jobs:
           SELF_SVC_NAME: ${{ steps.lc_repository.outputs.name }}
         shell: bash
         run: |-
-          if [[ ${{ env.INPUT_SVC_NAME }} == "" ]] ; then
+          if [[ "${{ env.INPUT_SVC_NAME }}" == "" ]] ; then
             export SVC_NAME=${{ env.SELF_SVC_NAME }}
           else
             export SVC_NAME=${{ env.INPUT_SVC_NAME }}
