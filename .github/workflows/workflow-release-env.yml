@@ -132,6 +132,8 @@ jobs:
           echo "chglog_pr_reviewers=${chglog_pr_reviewers}" >> ${GITHUB_OUTPUT}
           echo "sharedlibs_pr_reviewers=${sharedlibs_pr_reviewers}" >> ${GITHUB_OUTPUT}
           echo "release_mode=${release_mode}" >> ${GITHUB_OUTPUT}
+          echo "dependant_repos=${dependant_repos}" >> ${GITHUB_OUTPUT}
+          echo "dependant_branch=${dependant_branch}" >> ${GITHUB_OUTPUT}
           echo "environment=${environment}" >> ${GITHUB_OUTPUT}
           echo "environment_string=${environment_string}" >> ${GITHUB_OUTPUT}
           echo "slack_release_channel_id=${slack_release_channel_id}" >> ${GITHUB_OUTPUT}
