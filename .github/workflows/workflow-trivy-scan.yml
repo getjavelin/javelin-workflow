@@ -196,7 +196,7 @@ jobs:
             export PAYLOAD_JSON="slack-trivy-scan-file-payload.json"
           fi
           envsubst < ${{ env.DEVOPS_REPO }}/slack-notify/${PAYLOAD_JSON} > ${{ env.SLACK_PAYLOAD_JSON }}
-          if [[ ${{ env.PIPELINE_DEBUG == 'enable' }} ]] ; then
+          if [[ "${{ env.PIPELINE_DEBUG }}" == "enable" ]] ; then
             cat ${{ env.SLACK_PAYLOAD_JSON }}
           fi
 

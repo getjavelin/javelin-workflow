@@ -34,6 +34,8 @@ on:
         value: ${{ jobs.javelin-env.outputs.release_mode }}
       environment:
         value: ${{ jobs.javelin-env.outputs.environment }}
+      environment_string:
+        value: ${{ jobs.javelin-env.outputs.environment_string }}
       dependant_repos:
         value: ${{ jobs.javelin-env.outputs.dependant_repos }}
       dependant_branch:
@@ -109,9 +111,11 @@ jobs:
           if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/deploy-config.json ]] ; then
             release_mode=$(cat ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/deploy-config.json | jq -r '.release.mode')
             environment=$(cat ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/deploy-config.json | jq -c '.type.${{ env.PIPELINE_ROLE }} | split(", ")')
+            environment_string=$(cat ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/deploy-config.json | jq -r '.type.${{ env.PIPELINE_ROLE }}')
           else
             release_mode=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/deploy-config.json | jq -r '.release.mode')
             environment=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/deploy-config.json | jq -c '.type.${{ env.PIPELINE_ROLE }} | split(", ")')
+            environment_string=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/deploy-config.json | jq -r '.type.${{ env.PIPELINE_ROLE }}')
           fi
 
           # Custom service
@@ -129,6 +133,7 @@ jobs:
           echo "sharedlibs_pr_reviewers=${sharedlibs_pr_reviewers}" >> ${GITHUB_OUTPUT}
           echo "release_mode=${release_mode}" >> ${GITHUB_OUTPUT}
           echo "environment=${environment}" >> ${GITHUB_OUTPUT}
+          echo "environment_string=${environment_string}" >> ${GITHUB_OUTPUT}
           echo "slack_release_channel_id=${slack_release_channel_id}" >> ${GITHUB_OUTPUT}
     outputs:
       build_env: ${{ steps.repo_env_setup.outputs.build_env }}
@@ -137,6 +142,7 @@ jobs:
       build_platform: ${{ steps.build_config.outputs.build_platform }}
       release_mode: ${{ steps.build_config.outputs.release_mode }}
       environment: ${{ steps.build_config.outputs.environment }}
+      environment_string: ${{ steps.build_config.outputs.environment_string }}
       dependant_repos: ${{ steps.build_config.outputs.dependant_repos }}
       dependant_branch: ${{ steps.build_config.outputs.dependant_branch }}
       sharedlibs_pr_reviewers: ${{ steps.build_config.outputs.sharedlibs_pr_reviewers }}

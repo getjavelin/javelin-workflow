@@ -34,6 +34,8 @@ on:
         value: ${{ jobs.javelin-env.outputs.release_mode }}
       environment:
         value: ${{ jobs.javelin-env.outputs.environment }}
+      environment_string:
+        value: ${{ jobs.javelin-env.outputs.environment_string }}
       slack_release_channel_id:
         value: ${{ jobs.javelin-env.outputs.slack_release_channel_id }}
 
@@ -101,15 +103,18 @@ jobs:
           if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/deploy-config.json ]] ; then
             release_mode=$(cat ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/deploy-config.json | jq -r '.release.mode')
             environment=$(cat ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/deploy-config.json | jq -c '.type.${{ env.PIPELINE_ROLE }} | split(", ")')
+            environment_string=$(cat ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/deploy-config.json | jq -r '.type.${{ env.PIPELINE_ROLE }}')
           else
             release_mode=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/deploy-config.json | jq -r '.release.mode')
             environment=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/deploy-config.json | jq -c '.type.${{ env.PIPELINE_ROLE }} | split(", ")')
+            environment_string=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/deploy-config.json | jq -r '.type.${{ env.PIPELINE_ROLE }}')
           fi
 
           slack_release_channel_id=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/notify-config.json | jq -r '.slack.release.channel_id')
           echo "build_platform=${build_platform}" >> ${GITHUB_OUTPUT}
           echo "release_mode=${release_mode}" >> ${GITHUB_OUTPUT}
           echo "environment=${environment}" >> ${GITHUB_OUTPUT}
+          echo "environment_string=${environment_string}" >> ${GITHUB_OUTPUT}
           echo "slack_release_channel_id=${slack_release_channel_id}" >> ${GITHUB_OUTPUT}
     outputs:
       build_env: ${{ steps.repo_env_setup.outputs.build_env }}
@@ -118,4 +123,5 @@ jobs:
       build_platform: ${{ steps.build_config.outputs.build_platform }}
       release_mode: ${{ steps.build_config.outputs.release_mode }}
       environment: ${{ steps.build_config.outputs.environment }}
+      environment_string: ${{ steps.build_config.outputs.environment_string }}
       slack_release_channel_id: ${{ steps.build_config.outputs.slack_release_channel_id }}

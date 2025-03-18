@@ -180,7 +180,7 @@ jobs:
         shell: bash
         run: |-
           envsubst < ${{ env.DEVOPS_REPO }}/slack-notify/${{ env.SLACK_PAYLOAD_JSON }} > ${{ env.SLACK_PAYLOAD_JSON }}
-          if [[ ${{ env.PIPELINE_DEBUG == 'enable' }} ]] ; then
+          if [[ "${{ env.PIPELINE_DEBUG }}" == "enable" ]] ; then
             cat ${{ env.SLACK_PAYLOAD_JSON }}
           fi
 
