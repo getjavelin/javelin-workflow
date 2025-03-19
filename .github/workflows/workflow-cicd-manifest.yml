@@ -3,15 +3,16 @@ name: Reusable Workflow - CICD Manifest
 on:
   workflow_call:
     inputs:
-      REGISTRY:
-        required: true
-        type: string
       IMAGE_NAME:
         required: true
         type: string
       IMAGE_TAG:
         required: true
         type: string
+      REGISTRY:
+        required: false
+        type: string
+        default: "ghcr.io"
     secrets:
       DEVOPS_PKG_TOKEN:
         required: true
