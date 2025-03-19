@@ -12,6 +12,9 @@ inputs:
     required: false
     type: string
     default: "javelin-cloud"
+outputs:
+  deploy_region:
+    value: ${{ steps.cloud.outputs.deploy_region }}
 
 runs:
   using: "composite"
@@ -22,5 +25,3 @@ runs:
       run: |-
         deploy_region=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/cloud-config.json | jq -r '.${{ input.CLOUD_PROVIDER }}.${{ input.DEPLOY_ENV }}.region')
         echo "deploy_region=${deploy_region}" >> ${GITHUB_OUTPUT}
-      outputs:
-        deploy_region: ${{ steps.cloud.outputs.deploy_region }}
