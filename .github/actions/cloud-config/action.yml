@@ -26,8 +26,8 @@ runs:
       id: cloud
       shell: bash
       run: |-
-        if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${{ input.SVC_NAME }}/common-config.json ]] ; then
-          deploy_region=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ input.SVC_NAME }}/common-config.json | jq -r '.cloud.${{ inputs.CLOUD_PROVIDER }}.${{ inputs.DEPLOY_ENV }}.region')
+        if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${{ inputs.SVC_NAME }}/common-config.json ]] ; then
+          deploy_region=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ inputs.SVC_NAME }}/common-config.json | jq -r '.cloud.${{ inputs.CLOUD_PROVIDER }}.${{ inputs.DEPLOY_ENV }}.region')
         else
           deploy_region=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/common-config.json | jq -r '.cloud.${{ inputs.CLOUD_PROVIDER }}.${{ inputs.DEPLOY_ENV }}.region')
         fi
