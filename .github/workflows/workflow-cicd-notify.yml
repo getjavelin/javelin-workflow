@@ -84,7 +84,7 @@ jobs:
       - name: Slack Payload Template
         shell: bash
         run: |-
-          export SLACK_CHANNEL_ID=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/notify-config.json | jq -r '.slack.release.channel_id')
+          export SLACK_CHANNEL_ID=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/common-config.json | jq -r '.slack.release.channel_id')
           envsubst < ${{ env.DEVOPS_REPO }}/slack-notify/${{ env.SLACK_PAYLOAD_JSON }} > ${{ env.SLACK_PAYLOAD_JSON }}
           if [[ "${{ env.PIPELINE_DEBUG }}" == "enable" ]] ; then
             cat ${{ env.SLACK_PAYLOAD_JSON }}

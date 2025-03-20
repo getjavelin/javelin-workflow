@@ -81,8 +81,8 @@ jobs:
         id: build_config
         shell: bash
         run: |-
-          pr_check_prefix=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/check-config.json | jq -r '.pr_check.keywords')
-          slack_release_channel_id=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/notify-config.json | jq -r '.slack.release.channel_id')
+          pr_check_prefix=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/common-config.json | jq -r '.pr_check.keywords')
+          slack_release_channel_id=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/common-config.json | jq -r '.slack.release.channel_id')
           echo "pr_check_prefix=${pr_check_prefix}" >> ${GITHUB_OUTPUT}
           echo "slack_release_channel_id=${slack_release_channel_id}" >> ${GITHUB_OUTPUT}
     outputs:

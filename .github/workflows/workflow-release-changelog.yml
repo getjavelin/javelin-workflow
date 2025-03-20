@@ -74,8 +74,8 @@ jobs:
           SVC_NAME: ${{ steps.lc_repository.outputs.name }}
         shell: bash
         run: |-
-          chglog_pr_reviewers=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/release-config.json | jq -r '.changelog.pr_reviewers')
-          slack_release_channel_id=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/notify-config.json | jq -r '.slack.release.channel_id')
+          chglog_pr_reviewers=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/gh-config.json | jq -r '.github_accounts.changelog.ids')
+          slack_release_channel_id=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/common-config.json | jq -r '.slack.release.channel_id')
           echo "chglog_pr_reviewers=${chglog_pr_reviewers}" >> ${GITHUB_OUTPUT}
           echo "slack_release_channel_id=${slack_release_channel_id}" >> ${GITHUB_OUTPUT}
     outputs:
