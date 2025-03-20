@@ -26,7 +26,7 @@ inputs:
   HELM_TIMEOUT:
     required: false
     type: string
-    default: "900s"
+    default: "20m"
   GCP_WIP_PROVIDER:
     required: false
     type: string
