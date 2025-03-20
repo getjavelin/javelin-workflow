@@ -72,7 +72,7 @@ jobs:
         id: build_config
         shell: bash
         run: |-
-          slack_release_channel_id=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/notify-config.json | jq -r '.slack.release.channel_id')
+          slack_release_channel_id=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/common-config.json | jq -r '.slack.release.channel_id')
           echo "slack_release_channel_id=${slack_release_channel_id}" >> ${GITHUB_OUTPUT}
     outputs:
       svc_name: ${{ steps.lc_repository.outputs.name }}

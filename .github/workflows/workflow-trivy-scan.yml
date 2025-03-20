@@ -69,8 +69,8 @@ jobs:
         id: build_config
         shell: bash
         run: |-
-          trivy_severity=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/sec-config.json | jq -r '.trivy.severity')
-          slack_scan_channel_id=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/notify-config.json | jq -r '.slack.scan.channel_id')
+          trivy_severity=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/common-config.json | jq -r '.trivy.severity')
+          slack_scan_channel_id=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/common-config.json | jq -r '.slack.scan.channel_id')
           echo "trivy_severity=${trivy_severity}" >> ${GITHUB_OUTPUT}
           echo "slack_scan_channel_id=${slack_scan_channel_id}" >> ${GITHUB_OUTPUT}
     outputs:
