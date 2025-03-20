@@ -8,6 +8,9 @@ inputs:
   DEPLOY_ENV:
     required: true
     type: string
+  SVC_NAME:
+    required: true
+    type: string
   DEVOPS_REPO:
     required: false
     type: string
@@ -23,5 +26,9 @@ runs:
       id: cloud
       shell: bash
       run: |-
-        deploy_region=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/common-config.json | jq -r '.cloud.${{ inputs.CLOUD_PROVIDER }}.${{ inputs.DEPLOY_ENV }}.region')
+        if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${{ input.SVC_NAME }}/common-config.json ]] ; then
+          deploy_region=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ input.SVC_NAME }}/common-config.json | jq -r '.cloud.${{ inputs.CLOUD_PROVIDER }}.${{ inputs.DEPLOY_ENV }}.region')
+        else
+          deploy_region=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/common-config.json | jq -r '.cloud.${{ inputs.CLOUD_PROVIDER }}.${{ inputs.DEPLOY_ENV }}.region')
+        fi
         echo "deploy_region=${deploy_region}" >> ${GITHUB_OUTPUT}
