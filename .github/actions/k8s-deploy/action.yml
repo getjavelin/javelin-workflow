@@ -26,7 +26,7 @@ inputs:
   HELM_TIMEOUT:
     required: false
     type: string
-    default: "15m"
+    default: "5m"
   GCP_WIP_PROVIDER:
     required: false
     type: string
@@ -131,8 +131,11 @@ runs:
           -f helm-values.yml
 
         if kubectl -n ${{ inputs.K8S_NAMESPACE }} get deploy ${{ inputs.SVC_NAME }} >/dev/null 2>&1 ; then
-          echo "Checking the status for the K8s Deployment"
-          kubectl --namespace ${{ inputs.K8S_NAMESPACE }} rollout status deploy ${{ inputs.SVC_NAME }} -w --timeout=${{ inputs.HELM_TIMEOUT }}
+          for i in {1..3} ; do
+            echo "${i} : Checking the status for the K8s Deployment"
+            kubectl --namespace ${{ inputs.K8S_NAMESPACE }} rollout status deploy ${{ inputs.SVC_NAME }} -w --timeout=${{ inputs.HELM_TIMEOUT }} && break
+            sleep 30
+          done
         fi
 
         helm repo remove ${{ inputs.SVC_NAME }}
