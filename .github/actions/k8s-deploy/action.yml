@@ -114,12 +114,7 @@ runs:
         helm search repo ${{ inputs.SVC_NAME }}
         # helm search repo ${{ inputs.SVC_NAME }} --versions --devel
 
-        HELM_RELEASE_CHECK="checking"
-        helm status ${{ inputs.SVC_NAME }} --namespace ${{ inputs.K8S_NAMESPACE }} || HELM_RELEASE_CHECK="not-present"
-
-        if [[ ${HELM_RELEASE_CHECK} == "not-present" ]] ; then
-          HELM_CMD="install"
-        else
+        if helm status ${{ inputs.SVC_NAME }} --namespace ${{ inputs.K8S_NAMESPACE }} >/dev/null 2>&1 ; then
           if [[ ${{ inputs.RELEASE_MODE }} == "reinstall" ]] ; then
             helm uninstall ${{ inputs.SVC_NAME }} --namespace ${{ inputs.K8S_NAMESPACE }}
             sleep 5
@@ -127,13 +122,17 @@ runs:
           else
             HELM_CMD="upgrade"
           fi
+        else
+          HELM_CMD="install"
         fi
 
         helm "${HELM_CMD}" ${{ inputs.SVC_NAME }} ${{ inputs.SVC_NAME }}/${{ inputs.SVC_NAME }} \
           --namespace ${{ inputs.K8S_NAMESPACE }} \
           -f helm-values.yml
 
-        kubectl --namespace ${{ inputs.K8S_NAMESPACE }} rollout status deploy ${{ inputs.SVC_NAME }} --timeout=${{ inputs.HELM_TIMEOUT }}
+        if kubectl -n ${{ inputs.K8S_NAMESPACE }} get deploy ${{ inputs.SVC_NAME }} >/dev/null 2>&1 ; then
+          kubectl --namespace ${{ inputs.K8S_NAMESPACE }} rollout status deploy ${{ inputs.SVC_NAME }} --timeout=${{ inputs.HELM_TIMEOUT }}
+        fi
 
         helm repo remove ${{ inputs.SVC_NAME }}
         rm -rf ~/.kube helm-values.yml
