@@ -105,7 +105,7 @@ jobs:
           if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/pipeline-config.json ]] ; then
             build_platform=$(cat ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/pipeline-config.json | jq -c '.build.platform.${{ env.PIPELINE_ROLE }} | split(", ")')
             release_mode=$(cat ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/pipeline-config.json | jq -r '.deploy.release.mode')
-            environment=$(cat ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/deplopipeliney-config.json | jq -c '.deploy.type.${{ env.PIPELINE_ROLE }} | split(", ")')
+            environment=$(cat ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/pipeline-config.json | jq -c '.deploy.type.${{ env.PIPELINE_ROLE }} | split(", ")')
             environment_string=$(cat ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/pipeline-config.json | jq -r '.deploy.type.${{ env.PIPELINE_ROLE }}')
           else
             build_platform=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/pipeline-config.json | jq -c '.build.platform.${{ env.PIPELINE_ROLE }} | split(", ")')
