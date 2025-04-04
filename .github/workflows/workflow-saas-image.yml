@@ -1,0 +1,93 @@
+name: Reusable Workflow - SaaS Image
+
+on:
+  workflow_call:
+    inputs:
+      SVC_NAME:
+        required: true
+        type: string
+      GCP_WIP_PROVIDER:
+        required: true
+        type: string
+      RELEASE_IMAGE_NAME:
+        required: true
+        type: string
+      IMAGE_TAG:
+        required: true
+        type: string
+      REGISTRY:
+        required: false
+        type: string
+        default: "ghcr.io"
+    secrets:
+      DEVOPS_PKG_TOKEN:
+        required: true
+    outputs:
+      saas_image_name:
+        value: ${{ jobs.javelin-saas-image.outputs.saas_image_name }}
+
+env:
+  SVC_NAME: ${{ inputs.SVC_NAME }}
+  REGISTRY: ${{ inputs.REGISTRY }}
+  GCP_WIP_PROVIDER: ${{ inputs.GCP_WIP_PROVIDER }}
+  RELEASE_IMAGE_NAME: ${{ inputs.RELEASE_IMAGE_NAME }}
+  IMAGE_TAG: ${{ inputs.IMAGE_TAG }}
+
+jobs:
+  javelin-saas-image:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Log into Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.DEVOPS_PKG_TOKEN }}
+
+      - name: Pull Docker image from GHCR
+        shell: bash
+        run: |-
+          docker pull ${{ env.REGISTRY }}/${{ env.RELEASE_IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+
+      - name: Setting up Deploy Env
+        id: env_auth
+        uses: getjavelin/javelin-workflow/.github/actions/env-auth@main
+        with:
+          DEPLOY_ENV: "saas"
+
+      - name: Cloud Config
+        id: cloud_config
+        uses: getjavelin/javelin-workflow/.github/actions/cloud-config@main
+        with:
+          CLOUD_PROVIDER: "gcp"
+          DEPLOY_ENV: ${{ steps.env_auth.outputs.deploy_env }}
+          SVC_NAME: ${{ env.SVC_NAME }}
+
+      - name: Configure GCP credentials
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.GCP_WIP_PROVIDER }}
+          service_account: ${{ steps.env_auth.outputs.cicd_sa }}
+          token_format: access_token
+          create_credentials_file: true
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Push Docker image to GCR
+        id: push
+        run: |-
+          gcloud auth configure-docker ${{ steps.cloud_config.outputs.deploy_region }}-docker.pkg.dev --quiet
+          docker image tag ${{ env.REGISTRY }}/${{ env.RELEASE_IMAGE_NAME }}:${{ env.IMAGE_TAG }} ${{ steps.cloud_config.outputs.deploy_region }}-docker.pkg.dev/${{ env.GCP_PROJECT }}/saas/${{ env.SVC_NAME }}:${{ env.IMAGE_TAG }}
+          docker push ${{ steps.cloud_config.outputs.deploy_region }}-docker.pkg.dev/${{ env.GCP_PROJECT }}/saas/${{ env.SVC_NAME }}:${{ env.IMAGE_TAG }}
+          echo "saas_image_name=${{ steps.cloud_config.outputs.deploy_region }}-docker.pkg.dev/${{ env.GCP_PROJECT }}/saas/${{ env.SVC_NAME }}" >> ${GITHUB_OUTPUT}
+    outputs:
+      saas_image_name: ${{ steps.push.outputs.saas_image_name }}
