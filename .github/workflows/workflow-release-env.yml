@@ -24,6 +24,8 @@ on:
     outputs:
       build_env:
         value: ${{ jobs.javelin-env.outputs.build_env }}
+      image_tag:
+        value: ${{ jobs.javelin-env.outputs.image_tag }}
       short_sha:
         value: ${{ jobs.javelin-env.outputs.short_sha }}
       lc_repository:
@@ -69,10 +71,10 @@ jobs:
         id: repo_env_setup
         shell: bash
         run: |-
-          echo "image_tag=$(basename ${{ github.event.release.tag_name }})" >> ${GITHUB_OUTPUT}
           echo "repository=$(basename ${{ github.repository }})" >> ${GITHUB_OUTPUT}
           echo "shortsha=$(git rev-parse --short=7 HEAD)" >> ${GITHUB_OUTPUT}
           echo "build_env=release" >> ${GITHUB_OUTPUT}
+          echo "image_tag=$(basename ${{ github.event.release.tag_name }})" >> ${GITHUB_OUTPUT}
 
       - name: Set Lowercase Repo Name
         id: lc_repository
