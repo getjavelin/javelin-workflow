@@ -69,6 +69,7 @@ jobs:
         id: repo_env_setup
         shell: bash
         run: |-
+          echo "image_tag=$(basename ${{ github.event.release.tag_name }})" >> ${GITHUB_OUTPUT}
           echo "repository=$(basename ${{ github.repository }})" >> ${GITHUB_OUTPUT}
           echo "shortsha=$(git rev-parse --short=7 HEAD)" >> ${GITHUB_OUTPUT}
           echo "build_env=release" >> ${GITHUB_OUTPUT}
@@ -135,6 +136,7 @@ jobs:
           echo "slack_release_channel_id=${slack_release_channel_id}" >> ${GITHUB_OUTPUT}
     outputs:
       build_env: ${{ steps.repo_env_setup.outputs.build_env }}
+      image_tag: ${{ steps.repo_env_setup.outputs.image_tag }}
       short_sha: ${{ steps.repo_env_setup.outputs.shortsha }}
       lc_repository: ${{ steps.lc_repository.outputs.name }}
       build_platform: ${{ steps.build_config.outputs.build_platform }}
