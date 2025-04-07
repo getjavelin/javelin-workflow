@@ -33,8 +33,11 @@ jobs:
         shell: bash
         run: |-
           TAG_COMMIT=$(git rev-list -n 1 ${{ github.ref_name }})
+          echo "TAG_COMMIT is ${TAG_COMMIT}"
           TAG_BRANCH=$(git branch -r --contains ${TAG_COMMIT} | grep -v HEAD | head -n 1 | sed 's/origin\///')
+          echo "TAG_BRANCH is ${TAG_BRANCH}"
           if [[ "${TAG_BRANCH}" == "main" ]] ; then
+            echo "test"
             echo "Invalid Branch for Release : ${TAG_BRANCH}"
             echo "enable_branch_build=true" >> ${GITHUB_OUTPUT}
           else
