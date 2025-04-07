@@ -27,7 +27,7 @@ runs:
         case "${{ inputs.DEPLOY_ENV }}" in
           "saas")
               echo "deploy_env=${{ inputs.DEPLOY_ENV }}" >> ${GITHUB_OUTPUT}
-              echo "cicd_sa=javelin-${{ inputs.DEPLOY_ENV }}-cicd-gh-sa@javelin-stage.iam.gserviceaccount.com" >> ${GITHUB_OUTPUT}
+              echo "cicd_sa=javelin-${{ inputs.DEPLOY_ENV }}-cicd-gh-sa@javelin-saas.iam.gserviceaccount.com" >> ${GITHUB_OUTPUT}
               echo "sql_secret=javelin-${{ inputs.DEPLOY_ENV }}-postgres" >> ${GITHUB_OUTPUT}
               echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
               echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-cicd-manual" >> ${GITHUB_OUTPUT}
