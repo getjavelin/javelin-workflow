@@ -3,9 +3,6 @@ name: Reusable Workflow - Release Validate
 on:
   workflow_call:
     inputs:
-      SVC_NAME:
-        required: true
-        type: string
       REGEX_PATTERN:
         required: false
         type: string
@@ -15,7 +12,6 @@ on:
         value: ${{ jobs.javelin-validate.outputs.enable_build }}
 
 env:
-  SVC_NAME: ${{ inputs.SVC_NAME }}
   REGEX_PATTERN: ${{ inputs.REGEX_PATTERN }}
 
 jobs:
@@ -31,28 +27,34 @@ jobs:
           persist-credentials: false
 
       - name: Validate Release Branch
+        id: validate_branch
         env:
           RELEASE_NAME: ${{ github.event.release.name }}
         shell: bash
         run: |-
           TAG_COMMIT=$(git rev-list -n 1 ${{ github.ref_name }})
           TAG_BRANCH=$(git branch -r --contains ${TAG_COMMIT} | grep -v HEAD | head -n 1 | sed 's/origin\///')
-          if [[ "${TAG_BRANCH}" != "main" ]] ; then
+          if [[ "${TAG_BRANCH}" == "main" ]] ; then
             echo "Invalid Branch for Release : ${TAG_BRANCH}"
-            exit 1
+            echo "enable_branch_build=true" >> ${GITHUB_OUTPUT}
+          else
+            echo "Invalid Branch for Release : ${TAG_BRANCH}"
+            echo "enable_branch_build=false" >> ${GITHUB_OUTPUT}        
           fi
 
       - name: Validate Release Tag
-        id: validate
+        if: ${{ steps.validate_branch.outputs.enable_branch_build == 'true' }}
+        id: validate_tag
         env:
           RELEASE_NAME: ${{ github.event.release.name }}
         shell: bash
         run: |-
           if [[ "${{ env.RELEASE_NAME }}" =~ ${{ env.REGEX_PATTERN }} ]] ; then
             echo "Valid version format: ${{ env.RELEASE_NAME }}"
-            echo "enable_build=true" >> ${GITHUB_OUTPUT}
+            echo "enable_tag_build=true" >> ${GITHUB_OUTPUT}
           else
             echo "Invalid version format: ${{ env.RELEASE_NAME }}"
+            echo "enable_tag_build=false" >> ${GITHUB_OUTPUT}
           fi
     outputs:
-      enable_build: ${{ steps.validate.outputs.enable_build }}
+      enable_build: ${{ steps.validate_tag.outputs.enable_tag_build }}
