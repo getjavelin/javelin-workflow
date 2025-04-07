@@ -42,6 +42,8 @@ env:
   GCP_WIP_PROVIDER: ${{ inputs.GCP_WIP_PROVIDER }}
   RELEASE_IMAGE_NAME: ${{ inputs.RELEASE_IMAGE_NAME }}
   IMAGE_TAG: ${{ inputs.IMAGE_TAG }}
+  DEVOPS_REPO: ${{ inputs.DEVOPS_REPO }}
+  DEVOPS_BRANCH: ${{ inputs.DEVOPS_BRANCH }}
 
 jobs:
   javelin-saas-image:
