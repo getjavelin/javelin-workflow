@@ -1,0 +1,36 @@
+name: Reusable Workflow - CICD Validate
+
+on:
+  workflow_call:
+    inputs:
+      CHANGE_PATTERN:
+        required: true
+        type: string
+    outputs:
+      enable_build:
+        value: ${{ jobs.javelin-validate.outputs.enable_build }}
+
+env:
+  CHANGE_PATTERN: ${{ inputs.CHANGE_PATTERN }}
+
+jobs:
+  javelin-validate:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Validate Trigger
+        uses: dorny/paths-filter@v3
+        id: validate_changes
+        with:
+          filters: |
+            enable_build:
+              - added|modified: '${{ env.CHANGE_PATTERN }}'
+    outputs:
+      enable_build: ${{ steps.validate_changes.outputs.enable_build }}
