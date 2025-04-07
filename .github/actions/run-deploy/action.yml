@@ -8,6 +8,10 @@ inputs:
   SVC_NAME:
     required: true
     type: string
+  GPU:
+    required: false
+    type: string
+    default: "disable"
   KSD_FILE:
     required: false
     type: string
@@ -27,7 +31,14 @@ runs:
           if [[ "${{ inputs.PIPELINE_DEBUG }}" == "enable" ]] ; then
             cat ${{ inputs.KSD_FILE }}
           fi
-          gcloud run services replace ${{ inputs.KSD_FILE }} --region=${{ inputs.REGION }}
+          if [[ "${{ inputs.GPU }}" == "enable" ]] ; then
+            gcloud run services replace ${{ inputs.KSD_FILE }} \
+              --region=${{ inputs.REGION }} \
+              --no-gpu-zonal-redundancy
+          else
+            gcloud run services replace ${{ inputs.KSD_FILE }} \
+              --region=${{ inputs.REGION }}
+          fi
         else
           echo "${{ inputs.KSD_FILE }} not found..!"
           exit 1
