@@ -1,0 +1,46 @@
+name: Composite Action - CloudRun Deploy
+description: Deploying Services into CloudRun
+
+inputs:
+  REGION:
+    required: true
+    type: string
+  SVC_NAME:
+    required: true
+    type: string
+  KSD_FILE:
+    required: false
+    type: string
+    default: "deployment.yml"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Deploying CloudRun
+      shell: bash
+      run: |-
+        gcloud run services replace ${{ inputs.KSD_FILE }} --region=${{ inputs.REGION }}
+
+    - name: Status Check
+      shell: bash
+      run: |-
+        echo "Waiting for Cloud Run service ${{ inputs.SVC_NAME }} to become ready..."
+        for i in {1..12}; do
+          SVC_STATUS=$(gcloud run services describe ${{ inputs.SVC_NAME }} \
+            --region=${{ inputs.REGION }} \
+            --project=${{ env.GCP_PROJECT }} \
+            --format='value(status.conditions[?type="Ready"].status)')
+
+          if [[ "${SVC_STATUS}" == "True" ]]; then
+            echo "✅ Service is healthy and ready..."
+            break
+          fi
+
+          echo "Waiting... ($i/12) Service not ready yet...!"
+          sleep 10
+        done
+
+        if [[ "${SVC_STATUS}" != "True" ]]; then
+          echo "❌ Timed out waiting for the service to become healthy...!"
+          exit 1
+        fi
