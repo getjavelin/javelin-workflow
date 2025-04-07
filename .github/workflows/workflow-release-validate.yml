@@ -33,6 +33,8 @@ jobs:
         shell: bash
         run: |-
           export TAG_COMMIT=$(git rev-list -n 1 ${{ github.ref_name }})
+          git branch -r --contains ${TAG_COMMIT} | grep -v HEAD | head -n 1 | sed 's/origin\///'
+          echo "thio"
           export TAG_BRANCH=$(git branch -r --contains ${TAG_COMMIT} | grep -v HEAD | head -n 1 | sed 's/origin\///')
           echo "TAG_BRANCH is ${TAG_BRANCH}"
           if [[ "${TAG_BRANCH}" == "main" ]] ; then
