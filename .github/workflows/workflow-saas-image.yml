@@ -104,12 +104,20 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Push Docker image to GCR
-        id: push
+      - name: GCR Authentication
         run: |-
           gcloud auth configure-docker ${{ steps.cloud_config.outputs.deploy_region }}-docker.pkg.dev --quiet
+
+      - name: Push Version tag to GCR
+        id: push
+        run: |-
           docker image tag ${{ env.REGISTRY }}/${{ env.RELEASE_IMAGE_NAME }}:${{ env.IMAGE_TAG }} ${{ steps.cloud_config.outputs.deploy_region }}-docker.pkg.dev/${{ env.GCP_PROJECT }}/saas/${{ env.SVC_NAME }}:${{ env.IMAGE_TAG }}
           docker push ${{ steps.cloud_config.outputs.deploy_region }}-docker.pkg.dev/${{ env.GCP_PROJECT }}/saas/${{ env.SVC_NAME }}:${{ env.IMAGE_TAG }}
           echo "saas_image_name=${{ steps.cloud_config.outputs.deploy_region }}-docker.pkg.dev/${{ env.GCP_PROJECT }}/saas/${{ env.SVC_NAME }}" >> ${GITHUB_OUTPUT}
+
+      - name: Push Latest tag to GCR
+        run: |-
+          docker image tag ${{ env.REGISTRY }}/${{ env.RELEASE_IMAGE_NAME }}:${{ env.IMAGE_TAG }} ${{ steps.cloud_config.outputs.deploy_region }}-docker.pkg.dev/${{ env.GCP_PROJECT }}/saas/${{ env.SVC_NAME }}:latest
+          docker push ${{ steps.cloud_config.outputs.deploy_region }}-docker.pkg.dev/${{ env.GCP_PROJECT }}/saas/${{ env.SVC_NAME }}:latest
     outputs:
       saas_image_name: ${{ steps.push.outputs.saas_image_name }}
