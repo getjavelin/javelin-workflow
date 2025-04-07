@@ -12,6 +12,10 @@ inputs:
     required: false
     type: string
     default: "deployment.yml"
+  PIPELINE_DEBUG:
+    required: false
+    type: string
+    default: "enable"
 
 runs:
   using: "composite"
@@ -19,7 +23,15 @@ runs:
     - name: Deploying CloudRun
       shell: bash
       run: |-
-        gcloud run services replace ${{ inputs.KSD_FILE }} --region=${{ inputs.REGION }}
+        if [[ -f ${{ inputs.KSD_FILE }} ]] ; then
+          if [[ "${{ inputs.PIPELINE_DEBUG }}" == "enable" ]] ; then
+            cat ${{ inputs.KSD_FILE }}
+          fi
+          gcloud run services replace ${{ inputs.KSD_FILE }} --region=${{ inputs.REGION }}
+        else
+          echo "${{ inputs.KSD_FILE }} not found..!"
+          exit 1
+        fi
 
     - name: Status Check
       shell: bash
