@@ -1,0 +1,40 @@
+name: Reusable Workflow - Manual Validate
+
+on:
+  workflow_call:
+    inputs:
+      AUTHORIZED_BRANCH:
+        required: false
+        type: string
+        default: "main"
+    outputs:
+      enable_build:
+        value: ${{ jobs.javelin-validate.outputs.enable_build }}
+
+env:
+  AUTHORIZED_BRANCH: ${{ inputs.AUTHORIZED_BRANCH }}
+
+jobs:
+  javelin-validate:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - name: Validate Manual Branch
+        id: validate_br
+        shell: bash
+        run: |-
+          if [[ "${{ github.ref }}" == "refs/heads/${{ env.AUTHORIZED_BRANCH }}" ]] ; then
+            echo "Proceeding"
+            echo "enable_build=false" >> ${GITHUB_OUTPUT}
+          else
+            echo "${{ github.ref }} branch is not authorized to perform this action"
+          fi
+    outputs:
+      enable_build: ${{ steps.validate_br.outputs.enable_build }}

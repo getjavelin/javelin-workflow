@@ -1,0 +1,33 @@
+name: Reusable Workflow - GitHub Actor Validate
+
+on:
+  workflow_call:
+    inputs:
+      GH_AUTHORIZED_IDS:
+        required: true
+        type: string
+
+env:
+  GH_AUTHORIZED_IDS: ${{ inputs.GH_AUTHORIZED_IDS }}
+
+jobs:
+  javelin-validate:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Validate GH Actor
+        shell: bash
+        run: |-
+          IFS=',' read -ra GH_IDS_ARRAY <<< "${{ env.GH_AUTHORIZED_IDS }}"
+          for id in "${GH_IDS_ARRAY[@]}" ; do
+            if [[ ${id} == ${{ github.triggering_actor }} ]] ; then
+              echo "✅ Authorized: Running workflow for ${{ github.triggering_actor }}"
+              echo "trigger=authorized" >> ${GITHUB_OUTPUT}
+              break
+            else
+              echo "❌ Unauthorized: Only ${GH_IDS_ARRAY} can trigger this workflow"
+              exit 1
+            fi
+          done
