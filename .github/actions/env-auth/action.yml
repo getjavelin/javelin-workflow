@@ -18,10 +18,6 @@ outputs:
     value: ${{ steps.auth.outputs.cicd_secret_manual }}
   license_secret:
     value: ${{ steps.auth.outputs.license_secret }}
-  license_secret_private_key:
-    value: ${{ steps.auth.outputs.license_secret_private_key }}
-  license_secret_public_key:
-    value: ${{ steps.auth.outputs.license_secret_public_key }}
 
 runs:
   using: "composite"
@@ -38,8 +34,6 @@ runs:
               echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
               echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-cicd-manual" >> ${GITHUB_OUTPUT}
               echo "license_secret=javelin-${{ inputs.DEPLOY_ENV }}-license" >> ${GITHUB_OUTPUT}
-              echo "license_secret_private_key=javelin-${{ inputs.DEPLOY_ENV }}-license-private" >> ${GITHUB_OUTPUT}
-              echo "license_secret_public_key=javelin-${{ inputs.DEPLOY_ENV }}-license-public" >> ${GITHUB_OUTPUT}
             ;;
           *)
               echo "Failed to find the Authentication details for ${{ inputs.DEPLOY_ENV }}"
