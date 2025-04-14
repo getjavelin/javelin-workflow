@@ -84,6 +84,12 @@ runs:
         sleep 5
 
         case "${{ inputs.SVC_NAME }}" in
+          "javelin-admin")
+              kubectl -n ${{ inputs.K8S_NAMESPACE }} delete secret ${{ inputs.SVC_NAME }}-license || echo "K8s secret ${{ inputs.SVC_NAME }}-license not found"
+              sleep 10
+              kubectl -n ${{ inputs.K8S_NAMESPACE }} create secret generic ${{ inputs.SVC_NAME }}-license --from-file=license.jwt --from-file=public.pem
+              rm -rf license.jwt public.pem
+            ;;
           "javelin-core")
               kubectl -n ${{ inputs.K8S_NAMESPACE }} delete secret ${{ inputs.SVC_NAME }}-file || echo "K8s secret ${{ inputs.SVC_NAME }}-file not found"
               sleep 10
