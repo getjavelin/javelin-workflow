@@ -1,0 +1,38 @@
+name: Composite Action - Helm Package
+description: Creating the Helm Package
+
+inputs:
+  CHARTS_LOCAL_REPO:
+    required: true
+    type: string
+  CHART_NAME:
+    required: true
+    type: string
+  VER_SUFFIX:
+    required: true
+    type: string
+
+runs:
+  using: "composite"
+  steps:
+    - name: Helm Package
+      shell: bash
+      run: |-
+        cd ${{ inputs.CHARTS_LOCAL_REPO }}
+        mkdir release || echo "directory already exist....!"
+        if test -f "release/${{ inputs.CHART_NAME }}_do_not_edit.txt" ; then
+          NEXT_VER=$(cat release/${{ inputs.CHART_NAME }}_do_not_edit.txt | awk -F. '{OFS="."; $NF+=1; print $0}')
+          echo ${NEXT_VER} > release/${{ inputs.CHART_NAME }}_do_not_edit.txt
+        else
+          NEXT_VER="1.0.0"
+          echo "${NEXT_VER}" > release/${{ inputs.CHART_NAME }}_do_not_edit.txt
+        fi
+        
+        export SEMANTIC_VER="${NEXT_VER}${{ inputs.VER_SUFFIX }}"
+        export LATEST_VER="0.0.0${{ inputs.VER_SUFFIX }}-latest"
+
+        cd ../helm-charts
+        # specific version
+        helm package ${{ inputs.CHART_NAME }} --version ${SEMANTIC_VER} --app-version ${SEMANTIC_VER} -d ../${{ inputs.CHARTS_LOCAL_REPO }}
+        # latest version
+        helm package ${{ inputs.CHART_NAME }} --version ${LATEST_VER} --app-version ${LATEST_VER} -d ../${{ inputs.CHARTS_LOCAL_REPO }}
