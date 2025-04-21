@@ -19,6 +19,11 @@ on:
     secrets:
       DEVOPS_PKG_TOKEN:
         required: true
+    outputs:
+      svc_name:
+        value: ${{ jobs.javelin-manifest.outputs.svc_name }}
+      docker_image:
+        value: ${{ jobs.javelin-manifest.outputs.docker_image }}
 
 env:
   REGISTRY: ${{ inputs.REGISTRY }}
@@ -75,3 +80,6 @@ jobs:
         shell: bash
         run: |-
           docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+    outputs:
+      svc_name: ${{ env.SVC_NAME }}
+      docker_image: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}"
