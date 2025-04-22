@@ -90,6 +90,8 @@ jobs:
       contents: "read"
       id-token: "write"
     runs-on: ubuntu-24.04
+    env:
+      SVC_NAME: ${{ needs.javelin-env.outputs.lc_repository }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -97,6 +99,25 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.DEVOPS_GITHUB_TOKEN }}
           persist-credentials: true
+
+      - name: DevOps Repository Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: "${{ github.repository_owner }}/${{ env.DEVOPS_REPO }}"
+          token: ${{ secrets.DEVOPS_GITHUB_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ env.DEVOPS_BRANCH }}
+          path: ${{ env.DEVOPS_REPO }}
+
+      - name: Setting up chglog config
+        shell: bash
+        run: |
+          if test -d "${{ env.DEVOPS_REPO }}/reference/templates/chglog" ; then
+            cp -r ${{ env.DEVOPS_REPO }}/reference/templates/chglog .chglog
+            sed -i "s|SVC_NAME_VALUE|${{ env.SVC_NAME }}|g" .chglog/config.yml
+            rm -rf ${{ env.DEVOPS_REPO }}
+          fi
 
       - name: Check chglog config
         id: chglog_config
