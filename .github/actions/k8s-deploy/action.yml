@@ -139,11 +139,11 @@ runs:
         if kubectl -n ${{ inputs.K8S_NAMESPACE }} get deploy ${{ inputs.SVC_NAME }} >/dev/null 2>&1 ; then
           for i in {1..2} ; do
             echo "${i} : Checking the status for the K8s Deployment"
-            kubectl --namespace ${{ inputs.K8S_NAMESPACE }} rollout status deploy ${{ inputs.SVC_NAME }} -w --timeout=${{ inputs.HELM_TIMEOUT }} && export ROLLOUT_STATUS="success"
-            if [[ ${ROLLOUT_STATUS} == "success" ]] ; then
-              break
-            else
+            kubectl --namespace ${{ inputs.K8S_NAMESPACE }} rollout status deploy ${{ inputs.SVC_NAME }} -w --timeout=${{ inputs.HELM_TIMEOUT }} || export ROLLOUT_STATUS="failed"
+            if [[ ${ROLLOUT_STATUS} == "failed" ]] ; then
               sleep 30
+            else
+              break
             fi
           done
         fi
