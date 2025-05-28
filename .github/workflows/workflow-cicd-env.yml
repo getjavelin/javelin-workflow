@@ -105,7 +105,7 @@ jobs:
           fi
 
           if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/pipeline-config.json ]] ; then
-            export json_file=${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/pipeline-config.json"
+            export json_file="${{ env.DEVOPS_REPO }}/app-config/${SVC_NAME}/pipeline-config.json"
           else
             export json_file="${{ env.DEVOPS_REPO }}/app-config/javelin-default/pipeline-config.json"
           fi
