@@ -16,6 +16,8 @@ inputs:
     type: string
     default: "javelin-cloud"
 outputs:
+  deploy_cloud:
+    value: ${{ steps.cloud.outputs.deploy_cloud }}
   deploy_region:
     value: ${{ steps.cloud.outputs.deploy_region }}
 
@@ -27,8 +29,20 @@ runs:
       shell: bash
       run: |-
         if [[ -f ${{ env.DEVOPS_REPO }}/app-config/${{ inputs.SVC_NAME }}/common-config.json ]] ; then
-          deploy_region=$(cat ${{ env.DEVOPS_REPO }}/app-config/${{ inputs.SVC_NAME }}/common-config.json | jq -r '.cloud.${{ inputs.CLOUD_PROVIDER }}.${{ inputs.DEPLOY_ENV }}.region')
+          export json_file="${{ env.DEVOPS_REPO }}/app-config/${{ inputs.SVC_NAME }}/common-config.json"
         else
-          deploy_region=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/common-config.json | jq -r '.cloud.${{ inputs.CLOUD_PROVIDER }}.${{ inputs.DEPLOY_ENV }}.region')
+          export json_file="${{ env.DEVOPS_REPO }}/app-config/javelin-default/common-config.json"
         fi
-        echo "deploy_region=${deploy_region}" >> ${GITHUB_OUTPUT}
+
+        if [[ ${{ inputs.CLOUD_PROVIDER }} == "find" ]] ; then
+          if jq -e '.cloud.aws.${{ inputs.DEPLOY_ENV }}' ${json_file} > /dev/null; then
+            echo "deploy_cloud=aws" >> ${GITHUB_OUTPUT}
+          elif jq -e '.cloud.gcp.${{ inputs.DEPLOY_ENV }}' ${json_file} > /dev/null; then
+            echo "deploy_cloud=gcp" >> ${GITHUB_OUTPUT}
+          else
+            echo "deploy_cloud=nil" >> ${GITHUB_OUTPUT}
+          fi
+        else
+          deploy_region=$(cat ${json_file} | jq -r '.cloud.${{ inputs.CLOUD_PROVIDER }}.${{ inputs.DEPLOY_ENV }}.region')
+          echo "deploy_region=${deploy_region}" >> ${GITHUB_OUTPUT}
+        fi

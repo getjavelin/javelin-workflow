@@ -12,12 +12,14 @@ outputs:
     value: ${{ steps.auth.outputs.cicd_sa }}
   sql_secret:
     value: ${{ steps.auth.outputs.sql_secret }}
+  cicd_role:
+    value: ${{ steps.auth.outputs.cicd_role }}
+  rds_secret:
+    value: ${{ steps.auth.outputs.rds_secret }}
   cicd_secret:
     value: ${{ steps.auth.outputs.cicd_secret }}
   cicd_secret_manual:
     value: ${{ steps.auth.outputs.cicd_secret_manual }}
-  license_secret:
-    value: ${{ steps.auth.outputs.license_secret }}
 
 runs:
   using: "composite"
@@ -27,13 +29,22 @@ runs:
       shell: bash
       run: |-
         case "${{ inputs.DEPLOY_ENV }}" in
+          "dev1")
+          "dev2")
+              echo "deploy_env=${{ inputs.DEPLOY_ENV }}" >> ${GITHUB_OUTPUT}
+              echo "cicd_role=javelin-${{ inputs.DEPLOY_ENV }}-cicd-github-action" >> ${GITHUB_OUTPUT}
+              echo "rds_secret=javelin-${{ inputs.DEPLOY_ENV }}-aurora-postgres" >> ${GITHUB_OUTPUT}
+              echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
+              echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-cicd-manual" >> ${GITHUB_OUTPUT}
+            ;;
+          "demo")
+          "stage")
           "saas")
               echo "deploy_env=${{ inputs.DEPLOY_ENV }}" >> ${GITHUB_OUTPUT}
-              echo "cicd_sa=javelin-${{ inputs.DEPLOY_ENV }}-cicd-gh-sa@javelin-saas.iam.gserviceaccount.com" >> ${GITHUB_OUTPUT}
+              echo "cicd_sa=javelin-${{ inputs.DEPLOY_ENV }}-cicd-gh-sa@javelin-${{ inputs.DEPLOY_ENV }}.iam.gserviceaccount.com" >> ${GITHUB_OUTPUT}
               echo "sql_secret=javelin-${{ inputs.DEPLOY_ENV }}-postgres" >> ${GITHUB_OUTPUT}
               echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
               echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-cicd-manual" >> ${GITHUB_OUTPUT}
-              echo "license_secret=javelin-${{ inputs.DEPLOY_ENV }}-license" >> ${GITHUB_OUTPUT}
             ;;
           *)
               echo "Failed to find the Authentication details for ${{ inputs.DEPLOY_ENV }}"
