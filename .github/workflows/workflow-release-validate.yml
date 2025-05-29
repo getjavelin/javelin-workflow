@@ -17,6 +17,7 @@ on:
 
 env:
   REGEX_PATTERN: ${{ inputs.REGEX_PATTERN }}
+  RELEASE_BRANCH: ${{ inputs.RELEASE_BRANCH }}
   RELEASE_NAME: ${{ github.event.release.name }}
 
 jobs:
