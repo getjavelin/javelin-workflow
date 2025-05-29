@@ -32,10 +32,6 @@ on:
         value: ${{ jobs.javelin-env.outputs.build_platform }}
       release_mode:
         value: ${{ jobs.javelin-env.outputs.release_mode }}
-      environment:
-        value: ${{ jobs.javelin-env.outputs.environment }}
-      environment_string:
-        value: ${{ jobs.javelin-env.outputs.environment_string }}
       environment_aws:
         value: ${{ jobs.javelin-env.outputs.environment_aws }}
       environment_aws_string:
@@ -112,8 +108,6 @@ jobs:
 
           build_platform=$(cat ${json_file} | jq -c '.build.platform.${{ env.PIPELINE_ROLE }} | split(", ")')
           release_mode=$(cat ${json_file} | jq -r '.deploy.release.mode')
-          environment=$(cat ${json_file} | jq -c '.deploy.type.${{ env.PIPELINE_ROLE }} | split(", ")')
-          environment_string=$(cat ${json_file} | jq -r '.deploy.type.${{ env.PIPELINE_ROLE }}')
           environment_aws=$(cat ${json_file} | jq -c '.deploy.type.${{ env.PIPELINE_ROLE }}_mode.aws | split(", ")')
           environment_aws_string=$(cat ${json_file} | jq -r '.deploy.type.${{ env.PIPELINE_ROLE }}_mode.aws')
           environment_gcp=$(cat ${json_file} | jq -c '.deploy.type.${{ env.PIPELINE_ROLE }}_mode.gcp | split(", ")')
@@ -123,8 +117,6 @@ jobs:
           slack_release_channel_id=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/common-config.json | jq -r '.slack.release.channel_id')
           echo "build_platform=${build_platform}" >> ${GITHUB_OUTPUT}
           echo "release_mode=${release_mode}" >> ${GITHUB_OUTPUT}
-          echo "environment=${environment}" >> ${GITHUB_OUTPUT}
-          echo "environment_string=${environment_string}" >> ${GITHUB_OUTPUT}
           echo "environment_aws=${environment_aws}" >> ${GITHUB_OUTPUT}
           echo "environment_aws_string=${environment_aws_string}" >> ${GITHUB_OUTPUT}
           echo "environment_gcp=${environment_gcp}" >> ${GITHUB_OUTPUT}
@@ -137,8 +129,6 @@ jobs:
       lc_repository: ${{ steps.lc_repository.outputs.name }}
       build_platform: ${{ steps.build_config.outputs.build_platform }}
       release_mode: ${{ steps.build_config.outputs.release_mode }}
-      environment: ${{ steps.build_config.outputs.environment }}
-      environment_string: ${{ steps.build_config.outputs.environment_string }}
       environment_aws: ${{ steps.build_config.outputs.environment_aws }}
       environment_aws_string: ${{ steps.build_config.outputs.environment_aws_string }}
       environment_gcp: ${{ steps.build_config.outputs.environment_gcp }}
