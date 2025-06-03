@@ -51,7 +51,7 @@ runs:
               echo "sql_secret=javelin-${{ inputs.DEPLOY_ENV }}-postgres" >> ${GITHUB_OUTPUT}
               echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
               echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-cicd-manual" >> ${GITHUB_OUTPUT}
-              echo "wip_provider=${{ vars.GCP_WIP_PROVIDER }}" >> ${GITHUB_OUTPUT}
+              echo "wip_provider=projects/391144039483/locations/global/workloadIdentityPools/github-wip/providers/github-wip" >> ${GITHUB_OUTPUT}
             ;;
           "stage")
               echo "deploy_env=${{ inputs.DEPLOY_ENV }}" >> ${GITHUB_OUTPUT}
@@ -59,7 +59,7 @@ runs:
               echo "sql_secret=javelin-${{ inputs.DEPLOY_ENV }}-postgres" >> ${GITHUB_OUTPUT}
               echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
               echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-cicd-manual" >> ${GITHUB_OUTPUT}
-              echo "wip_provider=${{ vars.GCP_WIP_PROVIDER }}" >> ${GITHUB_OUTPUT}
+              echo "wip_provider=projects/391144039483/locations/global/workloadIdentityPools/github-wip/providers/github-wip" >> ${GITHUB_OUTPUT}
             ;;
           "saas")
               echo "deploy_env=${{ inputs.DEPLOY_ENV }}" >> ${GITHUB_OUTPUT}
@@ -67,7 +67,7 @@ runs:
               echo "sql_secret=javelin-${{ inputs.DEPLOY_ENV }}-postgres" >> ${GITHUB_OUTPUT}
               echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
               echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-cicd-manual" >> ${GITHUB_OUTPUT}
-              echo "wip_provider=${{ vars.GCP_SAAS_WIP_PROVIDER }}" >> ${GITHUB_OUTPUT}
+              echo "wip_provider=projects/255962185692/locations/global/workloadIdentityPools/github-wip/providers/github-wip" >> ${GITHUB_OUTPUT}
             ;;
           *)
               echo "Failed to find the Authentication details for ${{ inputs.DEPLOY_ENV }}"
