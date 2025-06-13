@@ -222,7 +222,7 @@ jobs:
         with:
           args: --config=${{ env.GO_LINT_CFG }}
           version: "v2.1.6"
-          verify: false
+          verify: true
           working-directory: .
 
       - name: Upload Lint Report
