@@ -218,10 +218,10 @@ jobs:
 
       - name: Go Lint Check
         if: ${{ needs.javelin-env.outputs.lint_lan == 'go' }}
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v8.0.0
         with:
           args: --config=${{ env.GO_LINT_CFG }}
-          version: ${{ env.GOLANGCI_LINT_VERSION }}
+          version: "v2.1.6"
           working-directory: .
 
       - name: Upload Lint Report
