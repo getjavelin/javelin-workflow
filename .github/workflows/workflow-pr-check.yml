@@ -31,6 +31,7 @@ env:
   NODE_LINT_CFG: "eslint.config.js"
   LINT_REPORT_FILE: "lint-report"
   PY_VER: 3.11.8
+  REDTEAM_PY_VER: 3.12.0
   GO_VER: 1.24.0
   NODE_VER: 20
 
@@ -114,6 +115,13 @@ jobs:
           go-version: ${{ env.GO_VER }}
           cache: true
 
+      - name: Setup Python
+        if: ${{ env.PR_CHECK_REPO == 'javelin-redteam' }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.REDTEAM_PY_VER }}
+          cache: 'pip'
+
       - name: Static Code Scan
         shell: bash
         run: |-
@@ -125,10 +133,27 @@ jobs:
                 make processors
                 make test
               ;;
+            "javelin-redteam")
+                pip install --upgrade pip
+                pip install -e ".[dev]"
+                export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+                pytest --cov=src --cov-report=xml --cov-report=html
+              ;;
             *)
                 echo "no SAST for this module"
               ;;
           esac
+
+      - name: Upload Coverage Reports
+        if: ${{ env.PR_CHECK_REPO == 'javelin-redteam' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: sast-report
+          path: |
+            coverage.xml
+            htmlcov/
+          retention-days: 1
+        continue-on-error: true
 
   javelin-commit-check:
     needs:
