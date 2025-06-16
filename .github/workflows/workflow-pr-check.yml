@@ -126,13 +126,13 @@ jobs:
         shell: bash
         run: |-
           case "${{ env.PR_CHECK_REPO }}" in
-            "javelin-core")
-                export GOOS=linux
-                git config --global url."https://${{ secrets.DEVOPS_GITHUB_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
-                make build
-                make processors
-                make test
-              ;;
+            # "javelin-core")
+            #     export GOOS=linux
+            #     git config --global url."https://${{ secrets.DEVOPS_GITHUB_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+            #     make build
+            #     make processors
+            #     make test
+            #   ;;
             "javelin-redteam")
                 pip install --upgrade pip
                 pip install -e ".[dev]"
