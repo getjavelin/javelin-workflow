@@ -101,7 +101,7 @@ jobs:
       id-token: 'write'
     runs-on: ubuntu-24.04
     env:
-      PR_CHECK_REPO: ${{ needs.javelin-env.outputs.pr_check_repo }}
+      PR_CHECK_REPO: ${{ needs.javelin-env.outputs.svc_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
