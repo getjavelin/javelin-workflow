@@ -244,7 +244,7 @@ jobs:
       - name: Go Lint Check - test
         if: ${{ needs.javelin-env.outputs.lint_lan == 'go' }}
         env:
-          GOPRIVATE=github.com/getjavelin/
+          GOPRIVATE: "github.com/getjavelin/"
         run: |-
           git config --global url."https://${{ secrets.DEVOPS_GITHUB_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh -s v2.1.6
