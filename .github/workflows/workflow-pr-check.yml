@@ -32,7 +32,7 @@ env:
   LINT_REPORT_FILE: "lint-report"
   PY_VER: 3.11.8
   REDTEAM_PY_VER: 3.12.0
-  GO_VER: 1.24.0
+  GO_VER: 1.24.2
   NODE_VER: 20
 
 jobs:
@@ -202,6 +202,10 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
+
+      - name: Configure Private
+        run: |
+          git config --global url."https://${{ secrets.GITHUB_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
 
       - name: Setup Python Version
         if: ${{ needs.javelin-env.outputs.lint_lan == 'python' }}
