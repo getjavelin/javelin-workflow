@@ -204,8 +204,8 @@ jobs:
           persist-credentials: false
 
       - name: Configure Private
-        run: |
-          git config --global url."https://${{ secrets.GITHUB_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+        run: |-
+          git config --global url."https:/${{ secrets.DEVOPS_GITHUB_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
 
       - name: Setup Python Version
         if: ${{ needs.javelin-env.outputs.lint_lan == 'python' }}
@@ -244,6 +244,13 @@ jobs:
         with:
           go-version: ${{ env.GO_VER }}
           cache: true
+
+      - name: Go Lint Check - test
+        if: ${{ env.PR_CHECK_REPO == 'javelin-core' }}
+        run: |-
+          # git config --global url."https://${{ secrets.DEVOPS_GITHUB_TOKEN }}:x-oauth-basic@github.com/".insteadOf "https://github.com/"
+          make lint
+          golangci-lint run --timeout=90s -c .golangci.yml
 
       - name: Go Lint Check
         if: ${{ needs.javelin-env.outputs.lint_lan == 'go' }}
