@@ -1,0 +1,90 @@
+name: Reusable Workflow - Manual Notify
+
+on:
+  workflow_call:
+    inputs:
+      DEPLOY_ENV:
+        required: true
+        type: string
+      SVC_NAME:
+        required: true
+        type: string
+      JOB_STATUS:
+        required: true
+        type: string
+      TRIGGER_AUTHOR:
+        required: true
+        type: string
+      BUILD_URL:
+        required: true
+        type: string
+      DEVOPS_REPO:
+        required: false
+        type: string
+        default: "javelin-cloud"
+      DEVOPS_BRANCH:
+        required: false
+        type: string
+        default: "main"
+      JOB_STATUS_MARK:
+        required: false
+        type: string
+        default: ":x:"
+      SLACK_PAYLOAD_JSON:
+        required: false
+        type: string
+        default: "slack-manual-payload.json"
+      PIPELINE_DEBUG:
+        required: false
+        type: string
+        default: "disable"
+    secrets:
+      DEVOPS_GITHUB_TOKEN:
+        required: true
+      SLACK_BOT_TOKEN:
+        required: true
+
+env:
+  DEPLOY_ENV: ${{ inputs.DEPLOY_ENV }}
+  SVC_NAME: ${{ inputs.SVC_NAME }}
+  JOB_STATUS: ${{ inputs.JOB_STATUS }}
+  TRIGGER_AUTHOR: ${{ inputs.TRIGGER_AUTHOR }}
+  BUILD_URL: ${{ inputs.BUILD_URL }}
+  DEVOPS_REPO: ${{ inputs.DEVOPS_REPO }}
+  DEVOPS_BRANCH: ${{ inputs.DEVOPS_BRANCH }}
+  JOB_STATUS_MARK: ${{ inputs.JOB_STATUS_MARK }}
+  SLACK_PAYLOAD_JSON: ${{ inputs.SLACK_PAYLOAD_JSON }}
+  PIPELINE_DEBUG: ${{ inputs.PIPELINE_DEBUG }}
+
+jobs:
+  javelin-notify:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: DevOps Repository Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: "${{ github.repository_owner }}/${{ env.DEVOPS_REPO }}"
+          token: ${{ secrets.DEVOPS_GITHUB_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ env.DEVOPS_BRANCH }}
+          path: ${{ env.DEVOPS_REPO }}
+
+      - name: Slack Payload Template
+        shell: bash
+        run: |-
+          export SLACK_CHANNEL_ID=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/common-config.json | jq -r '.slack.release.channel_id')
+          envsubst < ${{ env.DEVOPS_REPO }}/slack-notify/${{ env.SLACK_PAYLOAD_JSON }} > ${{ env.SLACK_PAYLOAD_JSON }}
+          if [[ "${{ env.PIPELINE_DEBUG }}" == "enable" ]] ; then
+            cat ${{ env.SLACK_PAYLOAD_JSON }}
+          fi
+
+      - name: Slack Notification
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload-file-path: "${{ inputs.SLACK_PAYLOAD_JSON }}"
