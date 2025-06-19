@@ -135,7 +135,7 @@ runs:
           HELM_CMD="install"
         fi
 
-        if [[ -z ${{ inputs.CHART_NAME }} ]] ; then
+        if [[ "${{ env.CHART_NAME }}" == "" ]] ; then
           SVC_CHART_NAME=${{ inputs.SVC_NAME }}
         else
           SVC_CHART_NAME=${{ inputs.CHART_NAME }}
