@@ -39,6 +39,9 @@ inputs:
   CICD_ROLE:
     required: false
     type: string
+  CHART_NAME:
+    required: false
+    type: string
 
 runs:
   using: "composite"
@@ -132,7 +135,13 @@ runs:
           HELM_CMD="install"
         fi
 
-        helm "${HELM_CMD}" ${{ inputs.SVC_NAME }} ${{ inputs.SVC_NAME }}/${{ inputs.SVC_NAME }} \
+        if [[ -z ${{ inputs.CHART_NAME }} ]] ; then
+          SVC_CHART_NAME=${{ inputs.SVC_NAME }}
+        else
+          SVC_CHART_NAME=${{ inputs.CHART_NAME }}
+        fi
+
+        helm "${HELM_CMD}" ${{ inputs.SVC_NAME }} ${{ inputs.SVC_NAME }}/${SVC_CHART_NAME} \
           --namespace ${{ inputs.K8S_NAMESPACE }} \
           -f helm-values.yml
 
