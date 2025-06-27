@@ -156,7 +156,6 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PY_VER }}
-          cache: 'pip'
 
       - name: Install Dependencies
         shell: bash
