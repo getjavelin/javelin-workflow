@@ -15,15 +15,25 @@ on:
         required: false
         type: string
         default: "v[0-9]+\\.[0-9]+\\.[0-9]+"
+      PUBLISH_RELEASE:
+        required: false
+        type: string
+        default: "enable"
     secrets:
       DEVOPS_GITHUB_TOKEN:
         required: true
+    outputs:
+      latest_tag:
+        value: ${{ jobs.javelin-auto-release.outputs.latest_tag }}
+      new_tag:
+        value: ${{ jobs.javelin-auto-release.outputs.new_tag }}
 
 env:
   env_var: ${{ vars.ENV_CONTEXT_VAR }}
   TAG_PREFIX: ${{ inputs.TAG_PREFIX }}
   TAG_SUFFIX: ${{ inputs.TAG_SUFFIX }}
   TAG_PATTERN: ${{ inputs.TAG_PATTERN }}
+  PUBLISH_RELEASE: ${{ inputs.PUBLISH_RELEASE }}
 
 jobs:
   javelin-auto-release:
@@ -73,6 +83,7 @@ jobs:
           git push origin ${{ steps.bump_version.outputs.new_tag }}
 
       - name: Create Release
+        if: ${{ env.PUBLISH_RELEASE == 'enable' }}
         id: create_release
         uses: actions/create-release@v1
         env:
@@ -84,3 +95,6 @@ jobs:
             Auto Patch Release By GitHub Action
           draft: false
           prerelease: false
+    outputs:
+      latest_tag: ${{ steps.get_tag.outputs.latest_tag }}
+      new_tag: ${{ steps.bump_version.outputs.new_tag }}
