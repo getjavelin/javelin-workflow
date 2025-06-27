@@ -150,12 +150,7 @@ jobs:
           curl -sLfO https://github.com/git-chglog/git-chglog/releases/download/v0.15.4/git-chglog_0.15.4_linux_amd64.tar.gz
           tar -zxvf git-chglog_0.15.4_linux_amd64.tar.gz
           chmod +x git-chglog
-          ./git-chglog ${{ env.NEW_TAG }} --config .chglog/config.yml --output ./TEMP-CHANGELOG.md
-          echo "------------"
-          ls -la
-          echo "------------"
-          ls -la .chglog/
-          echo "------------"
+          ./git-chglog --config .chglog/config.yml --output TEMP-CHANGELOG.md ${{ env.NEW_TAG }}
 
       - name: Set up Python Version
         uses: actions/setup-python@v5
