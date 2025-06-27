@@ -1,0 +1,185 @@
+name: Reusable Workflow - Cron Weekly Changelog
+
+on:
+  workflow_call:
+    inputs:
+      DEVOPS_REPO:
+        required: false
+        type: string
+        default: "javelin-cloud"
+      DEVOPS_BRANCH:
+        required: false
+        type: string
+        default: "main"
+    secrets:
+      DEVOPS_GITHUB_TOKEN:
+        required: true
+      DEVOPS_PR_GITHUB_TOKEN:
+        required: true
+
+env:
+  env_var: ${{ vars.ENV_CONTEXT_VAR }}
+  DEVOPS_REPO: ${{ inputs.DEVOPS_REPO }}
+  DEVOPS_BRANCH: ${{ inputs.DEVOPS_BRANCH }}
+
+jobs:
+  javelin-env:
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setting up Repo Env
+        id: repo_env_setup
+        shell: bash
+        run: |-
+          echo "repository=$(basename ${{ github.repository }})" >> ${GITHUB_OUTPUT}
+          echo "shortsha=$(git rev-parse --short=7 HEAD)" >> ${GITHUB_OUTPUT}
+
+      - name: Set Lowercase Repo Name
+        id: lc_repository
+        env:
+          REPO_NAME: ${{ steps.repo_env_setup.outputs.repository }}
+        shell: bash
+        run: echo "name=${REPO_NAME,,}" >> ${GITHUB_OUTPUT}
+
+      - name: Get Build Config
+        id: build_config
+        env:
+          SVC_NAME: ${{ steps.lc_repository.outputs.name }}
+        shell: bash
+        run: |-
+          chglog_pr_reviewers=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/gh-config.json | jq -r '.github_accounts.changelog.ids')
+          echo "chglog_pr_reviewers=${chglog_pr_reviewers}" >> ${GITHUB_OUTPUT}
+    outputs:
+      chglog_pr_reviewers: ${{ steps.build_config.outputs.chglog_pr_reviewers }}
+
+  reusable-auto-release-workflow:
+    permissions:
+      contents: 'write'
+      id-token: 'write'
+    uses: getjavelin/javelin-workflow/.github/workflows/workflow-auto-release.yml@main
+    with:
+      TAG_SUFFIX: "-weekly"
+      PUBLISH_RELEASE: "disable"
+    secrets:
+      DEVOPS_GITHUB_TOKEN: ${{ secrets.DEVOPS_GITHUB_TOKEN }}
+
+  javelin-weekly-changelog:
+    needs:
+      - javelin-env
+      - reusable-auto-release-workflow
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-24.04
+    env:
+      SVC_NAME: ${{ needs.javelin-env.outputs.lc_repository }}
+      LATEST_TAG: ${{ needs.reusable-auto-release-workflow.outputs.latest_tag }}
+      NEW_TAG: ${{ needs.reusable-auto-release-workflow.outputs.new_tag }}
+      CICD_ROLE: "javelin-dev1-cicd-github-action"
+      CICD_SECRET_MANUAL_NAME: "javelin-dev1-cicd-manual"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.DEVOPS_GITHUB_TOKEN }}
+          persist-credentials: true
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: "arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/${{ env.CICD_ROLE }}"
+          role-session-name: ${{ env.CICD_ROLE }}
+          audience: sts.amazonaws.com
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Get CICD Manual Secret from AWS Secret Manager
+        uses: aws-actions/aws-secretsmanager-get-secrets@v2
+        with:
+          secret-ids: |
+            ${{ env.CICD_SECRET_MANUAL_NAME }}
+          parse-json-secrets: true
+
+      - name: Setting up CICD Manual Secret
+        id: set_cicd_manual_secret
+        shell: bash
+        run: |-
+          echo "openai_api_key=$(echo ${{ env.CICD_SECRET_MANUAL_NAME }}_openai_api_key | sed 's|-|_|g' | tr '[:lower:]' '[:upper:]')" >> ${GITHUB_OUTPUT}
+
+      - name: DevOps Repository Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: "${{ github.repository_owner }}/${{ env.DEVOPS_REPO }}"
+          token: ${{ secrets.DEVOPS_GITHUB_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ env.DEVOPS_BRANCH }}
+          path: ${{ env.DEVOPS_REPO }}
+
+      - name: Setting up chglog-weekly config
+        shell: bash
+        run: |-
+          if test -d "${{ env.DEVOPS_REPO }}/reference/templates/chglog-weekly" ; then
+            cp -r ${{ env.DEVOPS_REPO }}/reference/templates/chglog-weekly .chglog
+            sed -i "s|SVC_NAME_VALUE|${{ env.SVC_NAME }}|g" .chglog/config.yml
+            rm -rf ${{ env.DEVOPS_REPO }}
+          fi
+
+      - name: Install git-chglog and generate WEEKLY-CHANGELOG
+        shell: bash
+        run: |-
+          curl -sLfO https://github.com/git-chglog/git-chglog/releases/download/v0.15.4/git-chglog_0.15.4_linux_amd64.tar.gz
+          tar -zxvf git-chglog_0.15.4_linux_amd64.tar.gz
+          chmod +x git-chglog
+          ./git-chglog ${{ env.NEW_TAG }} --config .chglog/config.yml --output TEMP-CHANGELOG.md
+
+      - name: Customer Friendly Changelog
+        env:
+          OPENAI_API_KEY: $${{ steps.set_cicd_manual_secret.outputs.openai_api_key }}
+        shell: bash
+        run: |-
+          export OPENAI_API_KEY=${{ env.OPENAI_API_KEY }}
+          cp .chglog/weekly-changelog.py .
+          python weekly-changelog.py -i TEMP-CHANGELOG.md -o WEEKLY-CHANGELOG.md
+
+      - name: Create Pull Request
+        id: create_pr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.DEVOPS_GITHUB_TOKEN }}
+          commit-message: 'devops: Update WEEKLY-CHANGELOG for {{ env.NEW_TAG }}'
+          title: 'WEEKLY-CHANGELOG for {{ env.NEW_TAG }}'
+          committer: GitHub Action <action@github.com>
+          author: GitHub Action <action@github.com>
+          body: >
+            This PR is auto-generated by
+            [release pipeline](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+          base: ${{ env.CHANGELOG_BR }}
+          branch: cicd-weekly-changelog
+          delete-branch: true
+          add-paths: WEEKLY-CHANGELOG.md
+          reviewers: ${{ needs.javelin-env.outputs.chglog_pr_reviewers }}
+          labels: auto-generated
+
+      - name: Merge Pull Request
+        uses: pascalgn/automerge-action@v0.16.4
+        env:
+          PULL_REQUEST: "${{ steps.create_pr.outputs.pull-request-number }}"
+          GITHUB_TOKEN: "${{ secrets.DEVOPS_PR_GITHUB_TOKEN }}"
+          MERGE_COMMIT_MESSAGE: "This PR is auto-merged by [release pipeline](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+          MERGE_REQUIRED_APPROVALS: "0"
+          MERGE_RETRIES: "6"
+          MERGE_RETRY_SLEEP: "20000"
+          MERGE_METHOD: "rebase"
+          MERGE_LABELS: "auto-generated"
+          MERGE_REMOVE_LABELS: "auto-generated"
+    outputs:
+      pr_url: ${{ steps.create_pr.outputs.pull-request-url }}
+      pr_num: ${{ steps.create_pr.outputs.pull-request-number }}
