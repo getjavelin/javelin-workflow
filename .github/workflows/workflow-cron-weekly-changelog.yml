@@ -151,6 +151,9 @@ jobs:
           tar -zxvf git-chglog_0.15.4_linux_amd64.tar.gz
           chmod +x git-chglog
           ./git-chglog --config .chglog/config.yml --output TEMP-CHANGELOG.md ${{ env.NEW_TAG }}
+          echo "-----------------------------------"
+          cat TEMP-CHANGELOG.md
+          echo "-----------------------------------"
 
       - name: Set up Python Version
         uses: actions/setup-python@v5
@@ -170,6 +173,9 @@ jobs:
           export OPENAI_API_KEY=${{ env.OPENAI_API_KEY }}
           cp .chglog/weekly-changelog.py .
           python weekly-changelog.py -i TEMP-CHANGELOG.md -o WEEKLY-CHANGELOG.md
+          echo "-----------------------------------"
+          cat WEEKLY-CHANGELOG.md
+          echo "-----------------------------------"
 
       - name: Create Pull Request
         id: create_pr
