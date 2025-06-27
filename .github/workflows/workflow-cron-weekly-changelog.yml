@@ -151,6 +151,7 @@ jobs:
           tar -zxvf git-chglog_0.15.4_linux_amd64.tar.gz
           chmod +x git-chglog
           ./git-chglog ${{ env.NEW_TAG }} --config .chglog/config.yml --output TEMP-CHANGELOG.md
+          ls -la
 
       - name: Set up Python Version
         uses: actions/setup-python@v5
