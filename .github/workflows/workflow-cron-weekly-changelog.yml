@@ -48,6 +48,16 @@ jobs:
         shell: bash
         run: echo "name=${REPO_NAME,,}" >> ${GITHUB_OUTPUT}
 
+      - name: DevOps Repository Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: "${{ github.repository_owner }}/${{ env.DEVOPS_REPO }}"
+          token: ${{ secrets.DEVOPS_GITHUB_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ env.DEVOPS_BRANCH }}
+          path: ${{ env.DEVOPS_REPO }}
+
       - name: Get Build Config
         id: build_config
         env:
