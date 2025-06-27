@@ -21,6 +21,7 @@ env:
   env_var: ${{ vars.ENV_CONTEXT_VAR }}
   DEVOPS_REPO: ${{ inputs.DEVOPS_REPO }}
   DEVOPS_BRANCH: ${{ inputs.DEVOPS_BRANCH }}
+  PY_VER: 3.11.8
 
 jobs:
   javelin-env:
@@ -150,6 +151,16 @@ jobs:
           tar -zxvf git-chglog_0.15.4_linux_amd64.tar.gz
           chmod +x git-chglog
           ./git-chglog ${{ env.NEW_TAG }} --config .chglog/config.yml --output TEMP-CHANGELOG.md
+
+      - name: Set up Python Version
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PY_VER }}
+
+      - name: Install Dependencies
+        shell: bash
+        run: |-
+          pip install openai argparse
 
       - name: Customer Friendly Changelog
         env:
