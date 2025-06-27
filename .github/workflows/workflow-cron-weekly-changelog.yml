@@ -18,6 +18,9 @@ on:
     secrets:
       DEVOPS_GITHUB_TOKEN:
         required: true
+      DEVOPS_PR_TOKEN:
+        required: true
+
 
 env:
   env_var: ${{ vars.ENV_CONTEXT_VAR }}
