@@ -11,16 +11,19 @@ on:
         required: false
         type: string
         default: "main"
+      CHANGELOG_BR:
+        required: false
+        type: string
+        default: "main"
     secrets:
       DEVOPS_GITHUB_TOKEN:
-        required: true
-      DEVOPS_PR_GITHUB_TOKEN:
         required: true
 
 env:
   env_var: ${{ vars.ENV_CONTEXT_VAR }}
   DEVOPS_REPO: ${{ inputs.DEVOPS_REPO }}
   DEVOPS_BRANCH: ${{ inputs.DEVOPS_BRANCH }}
+  CHANGELOG_BR: ${{ inputs.CHANGELOG_BR }}
   PY_VER: 3.11.8
 
 jobs:
@@ -172,18 +175,22 @@ jobs:
         run: |-
           export OPENAI_API_KEY=${{ env.OPENAI_API_KEY }}
           cp .chglog/weekly-changelog.py .
-          python weekly-changelog.py -i TEMP-CHANGELOG.md -o WEEKLY-CHANGELOG.md
+          python weekly-changelog.py -i TEMP-CHANGELOG.md -o WEEKLY-TEMP-CHANGELOG.md
           echo "-----------------------------------"
-          cat WEEKLY-CHANGELOG.md
+          cat WEEKLY-TEMP-CHANGELOG.md
           echo "-----------------------------------"
+          echo -e "\n" >> WEEKLY-CHANGELOG.md
+          echo "---" >> WEEKLY-CHANGELOG.md
+          echo -e "\n" >> WEEKLY-CHANGELOG.md
+          cat WEEKLY-TEMP-CHANGELOG.md >> WEEKLY-CHANGELOG.md
 
       - name: Create Pull Request
         id: create_pr
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ secrets.DEVOPS_GITHUB_TOKEN }}
-          commit-message: 'devops: Update WEEKLY-CHANGELOG for {{ env.NEW_TAG }}'
-          title: 'WEEKLY-CHANGELOG for {{ env.NEW_TAG }}'
+          commit-message: 'devops: Update WEEKLY-CHANGELOG for ${{ env.NEW_TAG }}'
+          title: 'WEEKLY-CHANGELOG for ${{ env.NEW_TAG }}'
           committer: GitHub Action <action@github.com>
           author: GitHub Action <action@github.com>
           body: >
@@ -196,11 +203,22 @@ jobs:
           reviewers: ${{ needs.javelin-env.outputs.chglog_pr_reviewers }}
           labels: auto-generated
 
+      - name: Wait for PR Approval
+        shell: bash
+        run: |-
+          sleep 10
+
+      - name: Approve Pull Request
+        uses: hmarr/auto-approve-action@v4
+        with:
+          pull-request-number: ${{ steps.create_pr.outputs.pull-request-number }}
+          review-message: "Auto approved automated PR"
+
       - name: Merge Pull Request
         uses: pascalgn/automerge-action@v0.16.4
         env:
           PULL_REQUEST: "${{ steps.create_pr.outputs.pull-request-number }}"
-          GITHUB_TOKEN: "${{ secrets.DEVOPS_PR_GITHUB_TOKEN }}"
+          GITHUB_TOKEN: "${{ secrets.DEVOPS_GITHUB_TOKEN }}"
           MERGE_COMMIT_MESSAGE: "This PR is auto-merged by [release pipeline](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           MERGE_REQUIRED_APPROVALS: "0"
           MERGE_RETRIES: "6"
