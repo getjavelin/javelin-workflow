@@ -165,11 +165,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PY_VER }}
+          cache: 'pip'
+          cache-dependency-path: '.chglog/requirements.txt'
 
       - name: Install Dependencies
         shell: bash
         run: |-
-          pip install openai argparse
+          cd .chglog
+          pip install -r requirements.txt
 
       - name: Customer Friendly Changelog
         env:
@@ -178,14 +181,11 @@ jobs:
         run: |-
           export OPENAI_API_KEY=${{ env.OPENAI_API_KEY }}
           cp .chglog/weekly-changelog.py .
-          python weekly-changelog.py -i TEMP-CHANGELOG.md -o WEEKLY-TEMP-CHANGELOG.md
+          python weekly-changelog.py -i TEMP-CHANGELOG.md -o LATEST-WEEKLY-CHANGELOG.md
           echo "-----------------------------------"
-          cat WEEKLY-TEMP-CHANGELOG.md
+          cat LATEST-WEEKLY-CHANGELOG.md
           echo "-----------------------------------"
-          echo -e "\n" >> WEEKLY-CHANGELOG.md
-          echo "---" >> WEEKLY-CHANGELOG.md
-          echo -e "\n" >> WEEKLY-CHANGELOG.md
-          cat WEEKLY-TEMP-CHANGELOG.md >> WEEKLY-CHANGELOG.md
+          cat LATEST-WEEKLY-CHANGELOG.md >> WEEKLY-CHANGELOG.md
 
       - name: Create Pull Request
         id: create_pr
@@ -202,7 +202,7 @@ jobs:
           base: ${{ env.CHANGELOG_BR }}
           branch: cicd-weekly-changelog
           delete-branch: true
-          add-paths: WEEKLY-CHANGELOG.md
+          add-paths: WEEKLY-CHANGELOG.md,LATEST-WEEKLY-CHANGELOG.md
           reviewers: ${{ needs.javelin-env.outputs.chglog_pr_reviewers }}
           labels: auto-generated
 
