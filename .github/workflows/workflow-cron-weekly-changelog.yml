@@ -181,11 +181,11 @@ jobs:
         run: |-
           export OPENAI_API_KEY=${{ env.OPENAI_API_KEY }}
           cp .chglog/weekly-changelog.py .
-          python weekly-changelog.py -i TEMP-CHANGELOG.md -o LATEST-WEEKLY-CHANGELOG.md
+          python weekly-changelog.py -i TEMP-CHANGELOG.md -o changelogs/LATEST-WEEKLY-CHANGELOG.md
           echo "-----------------------------------"
-          cat LATEST-WEEKLY-CHANGELOG.md
+          cat changelogs/LATEST-WEEKLY-CHANGELOG.md
           echo "-----------------------------------"
-          cat LATEST-WEEKLY-CHANGELOG.md >> WEEKLY-CHANGELOG.md
+          cat changelogs/LATEST-WEEKLY-CHANGELOG.md >> changelogs/WEEKLY-CHANGELOG.md
 
       - name: Create Pull Request
         id: create_pr
@@ -202,7 +202,7 @@ jobs:
           base: ${{ env.CHANGELOG_BR }}
           branch: cicd-weekly-changelog
           delete-branch: true
-          add-paths: WEEKLY-CHANGELOG.md,LATEST-WEEKLY-CHANGELOG.md
+          add-paths: changelogs/WEEKLY-CHANGELOG.md,changelogs/LATEST-WEEKLY-CHANGELOG.md
           reviewers: ${{ needs.javelin-env.outputs.chglog_pr_reviewers }}
           labels: auto-generated
 
