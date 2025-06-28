@@ -185,7 +185,10 @@ jobs:
           echo "-----------------------------------"
           cat changelogs/LATEST-WEEKLY-CHANGELOG.md
           echo "-----------------------------------"
-          cat changelogs/LATEST-WEEKLY-CHANGELOG.md >> changelogs/WEEKLY-CHANGELOG.md
+          cp changelogs/LATEST-WEEKLY-CHANGELOG.md WEEKLY-CHANGELOG.md.temp
+          cat changelogs/WEEKLY-CHANGELOG.md >> WEEKLY-CHANGELOG.md.temp
+          rm -rf changelogs/WEEKLY-CHANGELOG.md
+          mv WEEKLY-CHANGELOG.md.temp changelogs/WEEKLY-CHANGELOG.md
 
       - name: Create Pull Request
         id: create_pr
