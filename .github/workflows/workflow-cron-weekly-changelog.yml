@@ -181,6 +181,7 @@ jobs:
         run: |-
           export OPENAI_API_KEY=${{ env.OPENAI_API_KEY }}
           cp .chglog/weekly-changelog.py .
+          mkdir changelogs || echo "Dir changelogs already exist"
           python weekly-changelog.py -i TEMP-CHANGELOG.md -o changelogs/LATEST-WEEKLY-CHANGELOG.md
           echo "-----------------------------------"
           cat changelogs/LATEST-WEEKLY-CHANGELOG.md
