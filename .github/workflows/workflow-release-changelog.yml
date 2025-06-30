@@ -22,6 +22,8 @@ on:
     secrets:
       DEVOPS_GITHUB_TOKEN:
         required: true
+      DEVOPS_PR_TOKEN:
+        required: true
       SLACK_BOT_TOKEN:
         required: true
 
@@ -137,7 +139,8 @@ jobs:
           curl -sLfO https://github.com/git-chglog/git-chglog/releases/download/v0.15.4/git-chglog_0.15.4_linux_amd64.tar.gz
           tar -zxvf git-chglog_0.15.4_linux_amd64.tar.gz
           chmod +x git-chglog
-          ./git-chglog --config .chglog/config.yml --output CHANGELOG.md
+          mkdir changelogs || echo "Dir changelogs already exist"
+          ./git-chglog --config .chglog/config.yml --output changelogs/CHANGELOG.md
 
       - name: Create Pull Request
         if: ${{ steps.chglog_config.outputs.present == 'true' }}
@@ -155,15 +158,27 @@ jobs:
           base: ${{ env.CHANGELOG_BR }}
           branch: cicd-changelog
           delete-branch: true
-          add-paths: CHANGELOG.md
+          add-paths: changelogs/CHANGELOG.md
           reviewers: ${{ needs.javelin-env.outputs.chglog_pr_reviewers }}
           labels: auto-generated
+
+      - name: Wait for PR Approval
+        shell: bash
+        run: |-
+          sleep 10
+
+      - name: Approve Pull Request
+        uses: hmarr/auto-approve-action@v4
+        with:
+          github-token: ${{ secrets.DEVOPS_PR_TOKEN }}
+          pull-request-number: ${{ steps.create_pr.outputs.pull-request-number }}
+          review-message: "Auto approved for automated PR"
 
       - name: Merge Pull Request
         uses: pascalgn/automerge-action@v0.16.4
         env:
           PULL_REQUEST: "${{ steps.create_pr.outputs.pull-request-number }}"
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          GITHUB_TOKEN: "${{ secrets.DEVOPS_GITHUB_TOKEN }}"
           MERGE_COMMIT_MESSAGE: "This PR is auto-merged by [release pipeline](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           MERGE_REQUIRED_APPROVALS: "0"
           MERGE_RETRIES: "6"
