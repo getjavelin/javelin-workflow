@@ -181,11 +181,15 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.DEVOPS_GITHUB_TOKEN }}"
           MERGE_COMMIT_MESSAGE: "This PR is auto-merged by [release pipeline](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
           MERGE_REQUIRED_APPROVALS: "0"
-          MERGE_RETRIES: "6"
+          MERGE_RETRIES: "10"
           MERGE_RETRY_SLEEP: "20000"
           MERGE_METHOD: "rebase"
           MERGE_LABELS: "auto-generated"
           MERGE_REMOVE_LABELS: "auto-generated"
+          UPDATE_LABELS: "auto-generated"
+          UPDATE_METHOD: "merge"
+          UPDATE_RETRIES: "6"
+          UPDATE_RETRY_SLEEP: "20000"
     outputs:
       pr_url: ${{ steps.create_pr.outputs.pull-request-url }}
       pr_num: ${{ steps.create_pr.outputs.pull-request-number }}
