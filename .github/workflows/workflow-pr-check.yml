@@ -99,7 +99,6 @@ jobs:
     permissions:
       contents: 'read'
       id-token: 'write'
-      packages: 'write'
     runs-on: ubuntu-24.04
     env:
       CICD_ROLE: "javelin-dev1-cicd-github-action"
