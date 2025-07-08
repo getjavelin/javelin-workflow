@@ -29,7 +29,7 @@ env:
   DEVOPS_BRANCH: ${{ inputs.DEVOPS_BRANCH }}
   CHANGELOG_BR: ${{ inputs.CHANGELOG_BR }}
   PY_VER: 3.11.8
-  PIPELINE_DEBUG: "enable"
+  PIPELINE_DEBUG: "disable"
   SLACK_PAYLOAD_JSON: "slack-customer-changelog-payload.json"
   CUSTOMER_CHANGELOG_FILE: "CUSTOMER-WEEKLY-CHANGELOG.md"
   CHANGELOG_REPOS: >
@@ -312,6 +312,7 @@ jobs:
 
       - name: Slack Payload Template
         shell: bash
+        id: slack_payload
         env:
           JOB_STATUS: ${{ needs.javelin-weekly-changelog.result }}
           JOB_STATUS_FAIL_MARK: ":x:"
@@ -329,6 +330,7 @@ jobs:
           if [[ "${{ env.PIPELINE_DEBUG }}" == "enable" ]] ; then
             cat ${{ env.SLACK_PAYLOAD_JSON }}
           fi
+          echo "slack_channel_id=${SLACK_CHANNEL_ID}" >> ${GITHUB_OUTPUT}
 
       - name: Slack Notification
         id: slack_notify 
@@ -336,7 +338,7 @@ jobs:
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
-          payload-file-path: "${{ inputs.SLACK_PAYLOAD_JSON }}"
+          payload-file-path: "${{ env.SLACK_PAYLOAD_JSON }}"
 
       - name: Attach Customer Weekly Changelog to Slack Notification
         uses: slackapi/slack-github-action@v2.0.0
@@ -344,7 +346,7 @@ jobs:
           method: files.uploadV2
           token: ${{ secrets.SLACK_BOT_TOKEN }}
           payload: |
-            channel_id: "${{ env.SLACK_CHANNEL_ID }}"
+            channel_id: "${{ steps.slack_payload.outputs.slack_channel_id }}"
             thread_ts: ${{ steps.slack_notify.outputs.ts }}
             initial_comment: "The Customer Friendly Changelog"
             file: "changelogs/${{ env.CUSTOMER_CHANGELOG_FILE }}"
