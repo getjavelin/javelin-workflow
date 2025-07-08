@@ -210,7 +210,7 @@ jobs:
         if: ${{ env.SVC_NAME == 'javelin-cloud' }}
         shell: bash
         run: |-
-          echo "# Customer Changlogs - ${date +%F}" > changelogs/${{ env.CUSTOMER_CHANGELOG_FILE }}
+          echo "# Customer Changlogs - $(date +%F)" > changelogs/${{ env.CUSTOMER_CHANGELOG_FILE }}
           echo -e "\n---\n" >> changelogs/${{ env.CUSTOMER_CHANGELOG_FILE }}
 
           for repo in ${CHANGELOG_REPOS}; do
