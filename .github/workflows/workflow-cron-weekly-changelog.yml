@@ -210,10 +210,10 @@ jobs:
         if: ${{ env.SVC_NAME == 'javelin-cloud' }}
         shell: bash
         run: |-
-          echo "# Customer Changlogs - ${date +%F}" > changelogs/${{ env.CUSTOMER_CHANGELOG_FILE }}
+          echo "# Customer Changlogs - $(date +%F)" > changelogs/${{ env.CUSTOMER_CHANGELOG_FILE }}
           echo -e "\n---\n" >> changelogs/${{ env.CUSTOMER_CHANGELOG_FILE }}
 
-          for repo in ${CHANGELOG_REPOS}; do
+          for repo in ${{ env.CHANGELOG_REPOS }}; do
             echo -e "\n# ${repo}\n---\n" >> changelogs/${{ env.CUSTOMER_CHANGELOG_FILE }}
 
             if curl -s -H "Authorization: Bearer ${{ secrets.DEVOPS_GITHUB_TOKEN }}" \
