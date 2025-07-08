@@ -20,7 +20,8 @@ on:
         required: true
       DEVOPS_PR_TOKEN:
         required: true
-
+      SLACK_BOT_TOKEN:
+        required: false
 
 env:
   env_var: ${{ vars.ENV_CONTEXT_VAR }}
@@ -28,6 +29,19 @@ env:
   DEVOPS_BRANCH: ${{ inputs.DEVOPS_BRANCH }}
   CHANGELOG_BR: ${{ inputs.CHANGELOG_BR }}
   PY_VER: 3.11.8
+  PIPELINE_DEBUG: "disable"
+  SLACK_PAYLOAD_JSON: "slack-customer-changelog-payload.json"
+  CUSTOMER_CHANGELOG_FILE: "CUSTOMER-WEEKLY-CHANGELOG.md"
+  CHANGELOG_REPOS: >
+    javelin-admin
+    javelin-core
+    javelin-dlp
+    javelin-eval
+    javelin-iac
+    javelin-models
+    javelin-python
+    javelin-redteam
+    javelin-webapp
 
 jobs:
   javelin-env:
@@ -67,13 +81,12 @@ jobs:
 
       - name: Get Build Config
         id: build_config
-        env:
-          SVC_NAME: ${{ steps.lc_repository.outputs.name }}
         shell: bash
         run: |-
           chglog_pr_reviewers=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/gh-config.json | jq -r '.github_accounts.changelog.ids')
           echo "chglog_pr_reviewers=${chglog_pr_reviewers}" >> ${GITHUB_OUTPUT}
     outputs:
+      lc_repository: ${{ steps.lc_repository.outputs.name }}
       chglog_pr_reviewers: ${{ steps.build_config.outputs.chglog_pr_reviewers }}
 
   reusable-auto-release-workflow:
@@ -174,7 +187,7 @@ jobs:
           cd .chglog
           pip install -r requirements.txt
 
-      - name: Customer Friendly Changelog
+      - name: Friendly Changelog
         env:
           OPENAI_API_KEY: $${{ steps.set_cicd_manual_secret.outputs.openai_api_key }}
         shell: bash
@@ -193,6 +206,34 @@ jobs:
           fi
           mv WEEKLY-CHANGELOG.md.temp changelogs/WEEKLY-CHANGELOG.md
 
+      - name: Customer Weekly Changelog
+        if: ${{ env.SVC_NAME == 'javelin-cloud' }}
+        shell: bash
+        run: |-
+          echo "# Customer Changlogs - ${date +%F}" > changelogs/${{ env.CUSTOMER_CHANGELOG_FILE }}
+          echo -e "\n---\n" >> changelogs/${{ env.CUSTOMER_CHANGELOG_FILE }}
+
+          for repo in ${CHANGELOG_REPOS}; do
+            echo -e "\n# ${repo}\n---\n" >> changelogs/${{ env.CUSTOMER_CHANGELOG_FILE }}
+
+            if curl -s -H "Authorization: Bearer ${{ secrets.DEVOPS_GITHUB_TOKEN }}" \
+                -H "Accept: application/vnd.github.v3.raw" \
+                "https://api.github.com/repos/${{ github.repository_owner }}/${repo}/contents/changelogs/LATEST-WEEKLY-CHANGELOG.md" >> changelogs/${{ env.CUSTOMER_CHANGELOG_FILE }} ; then
+              echo -e "\n\n" >> changelogs/${{ env.CUSTOMER_CHANGELOG_FILE }}
+            else
+              echo "LATEST-WEEKLY-CHANGELOG.md not found for ${repo}"
+            fi
+          done
+
+      - name: Upload Customer Weekly Changelog
+        if: ${{ env.SVC_NAME == 'javelin-cloud' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-friendly-changelog
+          path: changelogs/${{ env.CUSTOMER_CHANGELOG_FILE }}
+          retention-days: 7
+        continue-on-error: true
+
       - name: Create Pull Request
         id: create_pr
         uses: peter-evans/create-pull-request@v7
@@ -208,7 +249,7 @@ jobs:
           base: ${{ env.CHANGELOG_BR }}
           branch: cicd-weekly-changelog
           delete-branch: true
-          add-paths: changelogs/WEEKLY-CHANGELOG.md,changelogs/LATEST-WEEKLY-CHANGELOG.md
+          add-paths: changelogs/*.md
           reviewers: ${{ needs.javelin-env.outputs.chglog_pr_reviewers }}
           labels: auto-generated
 
@@ -243,3 +284,68 @@ jobs:
     outputs:
       pr_url: ${{ steps.create_pr.outputs.pull-request-url }}
       pr_num: ${{ steps.create_pr.outputs.pull-request-number }}
+
+  javelin-notify:
+    needs:
+      - javelin-env
+      - javelin-weekly-changelog
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    if: (needs.javelin-env.outputs.lc_repository == 'javelin-cloud') 
+    runs-on: ubuntu-24.04
+    steps:
+      - name: DevOps Repository Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: "${{ github.repository_owner }}/${{ env.DEVOPS_REPO }}"
+          token: ${{ secrets.DEVOPS_GITHUB_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ env.DEVOPS_BRANCH }}
+          path: ${{ env.DEVOPS_REPO }}
+
+      - name: Download Customer Weekly Changelog
+        uses: actions/download-artifact@v4
+        with:
+          name: customer-friendly-changelog
+
+      - name: Slack Payload Template
+        shell: bash
+        env:
+          JOB_STATUS:
+          JOB_STATUS_FAIL_MARK: ":x:"
+          JOB_STATUS_SUCCESS_MARK: ":white_check_mark:"
+          SVC_NAME: ${{ needs.javelin-env.outputs.lc_repository }}
+          BUILD_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+        run: |-
+          if [[ ${{ needs.javelin-weekly-changelog.result }} == "success" ]] ; then
+            export JOB_STATUS_MARK=${JOB_STATUS_SUCCESS_MARK}
+          else
+            export JOB_STATUS_MARK=${JOB_STATUS_FAIL_MARK}
+          fi
+          export SLACK_CHANNEL_ID=$(cat ${{ env.DEVOPS_REPO }}/app-config/javelin-default/common-config.json | jq -r '.slack.weekly_update.channel_id')
+          envsubst < ${{ env.DEVOPS_REPO }}/slack-notify/${{ env.SLACK_PAYLOAD_JSON }} > ${{ env.SLACK_PAYLOAD_JSON }}
+          if [[ "${{ env.PIPELINE_DEBUG }}" == "enable" ]] ; then
+            cat ${{ env.SLACK_PAYLOAD_JSON }}
+          fi
+
+      - name: Slack Notification
+        id: slack_notify 
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload-file-path: "${{ inputs.SLACK_PAYLOAD_JSON }}"
+
+      - name: Attach Customer Weekly Changelog to Slack Notification
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          method: files.uploadV2
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel_id: "${{ env.SLACK_CHANNEL_ID }}"
+            thread_ts: ${{ steps.slack_notify.outputs.ts }}
+            initial_comment: "The Customer Friendly Changelog"
+            file: "changelogs/${{ env.CUSTOMER_CHANGELOG_FILE }}"
+            filename: "${{ env.CUSTOMER_CHANGELOG_FILE }}"
