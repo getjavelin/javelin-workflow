@@ -349,5 +349,5 @@ jobs:
             channel_id: "${{ steps.slack_payload.outputs.slack_channel_id }}"
             thread_ts: ${{ steps.slack_notify.outputs.ts }}
             initial_comment: "The Customer Friendly Changelog"
-            file: "changelogs/${{ env.CUSTOMER_CHANGELOG_FILE }}"
+            file: "${{ env.CUSTOMER_CHANGELOG_FILE }}"
             filename: "${{ env.CUSTOMER_CHANGELOG_FILE }}"
