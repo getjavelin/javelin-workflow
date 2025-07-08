@@ -29,7 +29,7 @@ env:
   DEVOPS_BRANCH: ${{ inputs.DEVOPS_BRANCH }}
   CHANGELOG_BR: ${{ inputs.CHANGELOG_BR }}
   PY_VER: 3.11.8
-  PIPELINE_DEBUG: "disable"
+  PIPELINE_DEBUG: "enable"
   SLACK_PAYLOAD_JSON: "slack-customer-changelog-payload.json"
   CUSTOMER_CHANGELOG_FILE: "CUSTOMER-WEEKLY-CHANGELOG.md"
   CHANGELOG_REPOS: >
@@ -313,7 +313,7 @@ jobs:
       - name: Slack Payload Template
         shell: bash
         env:
-          JOB_STATUS:
+          JOB_STATUS: ${{ needs.javelin-weekly-changelog.result }}
           JOB_STATUS_FAIL_MARK: ":x:"
           JOB_STATUS_SUCCESS_MARK: ":white_check_mark:"
           SVC_NAME: ${{ needs.javelin-env.outputs.lc_repository }}
