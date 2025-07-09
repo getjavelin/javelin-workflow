@@ -9,6 +9,10 @@ on:
       IMAGE_TAG:
         required: true
         type: string
+      IMAGE_DIGESTS:
+        required: false
+        type: string
+        default: "digests-*"
       REGISTRY:
         required: false
         type: string
@@ -18,9 +22,10 @@ on:
         required: true
 
 env:
-  REGISTRY: ${{ inputs.REGISTRY }}
+  REGISTRY: ${{ inputs.IMAGE_DIGESTS }}
   IMAGE_NAME: ${{ inputs.IMAGE_NAME }}
   IMAGE_TAG: ${{ inputs.IMAGE_TAG }}
+  IMAGE_DIGESTS: ${{ inputs.IMAGE_DIGESTS }}
 
 jobs:
   javelin-manifest:
@@ -33,7 +38,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: /tmp/digests
-          pattern: digests-*
+          pattern: ${{ env.IMAGE_DIGESTS }}
           merge-multiple: true
 
       - name: Set up Docker Buildx
