@@ -39,6 +39,8 @@ runs:
             echo "deploy_cloud=aws" >> ${GITHUB_OUTPUT}
           elif jq -e '.cloud.gcp.${{ inputs.DEPLOY_ENV }}' ${json_file} > /dev/null; then
             echo "deploy_cloud=gcp" >> ${GITHUB_OUTPUT}
+          elif jq -e '.cloud.azure.${{ inputs.DEPLOY_ENV }}' ${json_file} > /dev/null; then
+            echo "deploy_cloud=azure" >> ${GITHUB_OUTPUT}
           else
             echo "deploy_cloud=nil" >> ${GITHUB_OUTPUT}
           fi

@@ -2,9 +2,6 @@ name: Composite Action - K8s Deploy
 description: Deploying Helm Charts into Kubernetes
 
 inputs:
-  REGION:
-    required: true
-    type: string
   K8S_CLUSTER_TYPE:
     required: true
     type: string
@@ -40,6 +37,21 @@ inputs:
     required: false
     type: string
   CHART_NAME:
+    required: false
+    type: string
+  CLIENT_ID:
+    required: false
+    type: string
+  TENANT_ID:
+    required: false
+    type: string
+  SUBSCRIPTION_ID:
+    required: false
+    type: string
+  RESOURCE_GROUP:
+    required: false
+    type: string
+  REGION:
     required: false
     type: string
 
@@ -79,6 +91,29 @@ runs:
       shell: bash
       run: |-
         aws eks --region ${{ inputs.REGION }} update-kubeconfig --name ${{ inputs.K8S_CLUSTER_NAME }}
+
+    - name: Configure Azure credentials
+      if: ${{ inputs.K8S_CLUSTER_TYPE == 'aks' }}
+      uses: azure/login@v2
+      with:
+        client-id: ${{ inputs.CLIENT_ID }}
+        tenant-id: ${{ inputs.TENANT_ID }}
+        subscription-id: ${{ inputs.SUBSCRIPTION_ID }}
+
+    - name: Install kubelogin
+      if: ${{ inputs.K8S_CLUSTER_TYPE == 'aks' }}
+      uses: azure/use-kubelogin@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Login to AKS
+      if: ${{ inputs.K8S_CLUSTER_TYPE == 'aks' }}
+      uses: azure/aks-set-context@v4
+      with:
+        resource-group: ${{ inputs.RESOURCE_GROUP }}
+        cluster-name: ${{ inputs.K8S_CLUSTER_NAME }}
+        admin: 'false'
+        use-kubelogin: 'true'
 
     - name: Deploying Helm Chart
       shell: bash
