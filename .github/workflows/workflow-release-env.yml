@@ -125,8 +125,8 @@ jobs:
           environment_aws_string=$(cat ${json_file} | jq -r '.deploy.type.${{ env.PIPELINE_ROLE }}.aws')
           environment_gcp=$(cat ${json_file} | jq -c '.deploy.type.${{ env.PIPELINE_ROLE }}.gcp | split(", ")')
           environment_gcp_string=$(cat ${json_file} | jq -r '.deploy.type.${{ env.PIPELINE_ROLE }}.gcp')
-          environment_azure=$(cat ${json_file} | jq -c '.deploy.type.${{ env.PIPELINE_ROLE }}.az | split(", ")')
-          environment_azure_string=$(cat ${json_file} | jq -r '.deploy.type.${{ env.PIPELINE_ROLE }}.az')
+          environment_azure=$(cat ${json_file} | jq -c '.deploy.type.${{ env.PIPELINE_ROLE }}.azure | split(", ")')
+          environment_azure_string=$(cat ${json_file} | jq -r '.deploy.type.${{ env.PIPELINE_ROLE }}.azure')
 
           # Custom service
           if [[ ${SVC_NAME} == "shared-libs" ]] ; then
