@@ -42,6 +42,10 @@ on:
         value: ${{ jobs.javelin-env.outputs.environment_gcp }}
       environment_gcp_string:
         value: ${{ jobs.javelin-env.outputs.environment_gcp_string }}
+      environment_azure:
+        value: ${{ jobs.javelin-env.outputs.environment_azure }}
+      environment_azure_string:
+        value: ${{ jobs.javelin-env.outputs.environment_azure_string }}
       dependant_repos:
         value: ${{ jobs.javelin-env.outputs.dependant_repos }}
       dependant_branch:
@@ -121,6 +125,8 @@ jobs:
           environment_aws_string=$(cat ${json_file} | jq -r '.deploy.type.${{ env.PIPELINE_ROLE }}.aws')
           environment_gcp=$(cat ${json_file} | jq -c '.deploy.type.${{ env.PIPELINE_ROLE }}.gcp | split(", ")')
           environment_gcp_string=$(cat ${json_file} | jq -r '.deploy.type.${{ env.PIPELINE_ROLE }}.gcp')
+          environment_azure=$(cat ${json_file} | jq -c '.deploy.type.${{ env.PIPELINE_ROLE }}.az | split(", ")')
+          environment_azure_string=$(cat ${json_file} | jq -r '.deploy.type.${{ env.PIPELINE_ROLE }}.az')
 
           # Custom service
           if [[ ${SVC_NAME} == "shared-libs" ]] ; then
@@ -142,6 +148,8 @@ jobs:
           echo "environment_aws_string=${environment_aws_string}" >> ${GITHUB_OUTPUT}
           echo "environment_gcp=${environment_gcp}" >> ${GITHUB_OUTPUT}
           echo "environment_gcp_string=${environment_gcp_string}" >> ${GITHUB_OUTPUT}
+          echo "environment_azure=${environment_azure}" >> ${GITHUB_OUTPUT}
+          echo "environment_azure_string=${environment_azure_string}" >> ${GITHUB_OUTPUT}
           echo "slack_release_channel_id=${slack_release_channel_id}" >> ${GITHUB_OUTPUT}
     outputs:
       build_env: ${{ steps.repo_env_setup.outputs.build_env }}
@@ -154,6 +162,8 @@ jobs:
       environment_aws_string: ${{ steps.build_config.outputs.environment_aws_string }}
       environment_gcp: ${{ steps.build_config.outputs.environment_gcp }}
       environment_gcp_string: ${{ steps.build_config.outputs.environment_gcp_string }}
+      environment_azure: ${{ steps.build_config.outputs.environment_azure }}
+      environment_azure_string: ${{ steps.build_config.outputs.environment_azure_string }}
       dependant_repos: ${{ steps.build_config.outputs.dependant_repos }}
       dependant_branch: ${{ steps.build_config.outputs.dependant_branch }}
       sharedlibs_pr_reviewers: ${{ steps.build_config.outputs.sharedlibs_pr_reviewers }}
