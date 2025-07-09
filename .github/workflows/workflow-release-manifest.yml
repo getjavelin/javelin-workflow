@@ -17,6 +17,10 @@ on:
         required: false
         type: string
         default: "regular"
+      IMAGE_DIGESTS:
+        required: false
+        type: string
+        default: "digests-*"
     secrets:
       DEVOPS_PKG_TOKEN:
         required: true
@@ -26,6 +30,7 @@ env:
   IMAGE_NAME: ${{ inputs.IMAGE_NAME }}
   IMAGE_TAG: ${{ inputs.IMAGE_TAG }}
   TAGGING_TYPE: ${{ inputs.TAGGING_TYPE }}
+  IMAGE_DIGESTS: ${{ inputs.IMAGE_DIGESTS }}
 
 jobs:
   javelin-manifest:
@@ -38,7 +43,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: /tmp/digests
-          pattern: digests-*
+          pattern: ${{ env.IMAGE_DIGESTS }}
           merge-multiple: true
 
       - name: Set up Docker Buildx

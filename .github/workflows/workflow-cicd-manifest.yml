@@ -22,7 +22,7 @@ on:
         required: true
 
 env:
-  REGISTRY: ${{ inputs.IMAGE_DIGESTS }}
+  REGISTRY: ${{ inputs.REGISTRY }}
   IMAGE_NAME: ${{ inputs.IMAGE_NAME }}
   IMAGE_TAG: ${{ inputs.IMAGE_TAG }}
   IMAGE_DIGESTS: ${{ inputs.IMAGE_DIGESTS }}
