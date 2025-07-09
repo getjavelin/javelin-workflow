@@ -51,6 +51,9 @@ inputs:
   RESOURCE_GROUP:
     required: false
     type: string
+  GH_TOKEN:
+    required: false
+    type: string
   REGION:
     required: false
     type: string
@@ -104,7 +107,7 @@ runs:
       if: ${{ inputs.K8S_CLUSTER_TYPE == 'aks' }}
       uses: azure/use-kubelogin@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.GH_TOKEN }}
 
     - name: Login to AKS
       if: ${{ inputs.K8S_CLUSTER_TYPE == 'aks' }}
