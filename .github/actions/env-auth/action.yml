@@ -14,8 +14,6 @@ outputs:
     value: ${{ steps.auth.outputs.sql_secret }}
   cicd_role:
     value: ${{ steps.auth.outputs.cicd_role }}
-  rds_secret:
-    value: ${{ steps.auth.outputs.rds_secret }}
   cicd_secret:
     value: ${{ steps.auth.outputs.cicd_secret }}
   cicd_secret_manual:
@@ -40,14 +38,14 @@ runs:
           "dev1")
               echo "deploy_env=${{ inputs.DEPLOY_ENV }}" >> ${GITHUB_OUTPUT}
               echo "cicd_role=javelin-${{ inputs.DEPLOY_ENV }}-cicd-github-action" >> ${GITHUB_OUTPUT}
-              echo "rds_secret=javelin-${{ inputs.DEPLOY_ENV }}-aurora-postgres" >> ${GITHUB_OUTPUT}
+              echo "sql_secret=javelin-${{ inputs.DEPLOY_ENV }}-aurora-postgres" >> ${GITHUB_OUTPUT}
               echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
               echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-cicd-manual" >> ${GITHUB_OUTPUT}
             ;;
           "dev2")
               echo "deploy_env=${{ inputs.DEPLOY_ENV }}" >> ${GITHUB_OUTPUT}
               echo "cicd_role=javelin-${{ inputs.DEPLOY_ENV }}-cicd-github-action" >> ${GITHUB_OUTPUT}
-              echo "rds_secret=javelin-${{ inputs.DEPLOY_ENV }}-aurora-postgres" >> ${GITHUB_OUTPUT}
+              echo "sql_secret=javelin-${{ inputs.DEPLOY_ENV }}-aurora-postgres" >> ${GITHUB_OUTPUT}
               echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
               echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-cicd-manual" >> ${GITHUB_OUTPUT}
             ;;
