@@ -156,30 +156,24 @@ runs:
           kubectl -n ${{ inputs.K8S_NAMESPACE }} create secret generic ${{ inputs.SVC_NAME }}-env --from-file=set-env.sh
         fi
 
-        helm repo add ${{ inputs.SVC_NAME }} "${{ inputs.HELM_CHART }}"
-        helm repo update
-        helm search repo ${{ inputs.SVC_NAME }}
-        # helm search repo ${{ inputs.SVC_NAME }} --versions --devel
-
-        if helm status ${{ inputs.SVC_NAME }} --namespace ${{ inputs.K8S_NAMESPACE }} >/dev/null 2>&1 ; then
-          if [[ ${{ inputs.RELEASE_MODE }} == "reinstall" ]] ; then
-            helm uninstall ${{ inputs.SVC_NAME }} --namespace ${{ inputs.K8S_NAMESPACE }}
-            sleep 5
-            HELM_CMD="install"
-          else
-            HELM_CMD="upgrade"
-          fi
-        else
-          HELM_CMD="install"
-        fi
-
         if [[ "${{ env.CHART_NAME }}" == "" ]] ; then
           SVC_CHART_NAME=${{ inputs.SVC_NAME }}
         else
           SVC_CHART_NAME=${{ inputs.CHART_NAME }}
         fi
 
-        helm "${HELM_CMD}" ${{ inputs.SVC_NAME }} ${{ inputs.SVC_NAME }}/${SVC_CHART_NAME} \
+        helm repo add ${{ inputs.SVC_NAME }} "${{ inputs.HELM_CHART }}"
+        helm repo update
+        helm search repo ${{ inputs.SVC_NAME }}
+        # helm search repo ${{ inputs.SVC_NAME }} --versions --devel
+
+        if [[ ${{ inputs.RELEASE_MODE }} == "reinstall" ]] ; then
+          if helm status ${{ inputs.SVC_NAME }} --namespace ${{ inputs.K8S_NAMESPACE }} > /dev/null 2>&1 ; then
+            helm uninstall ${{ inputs.SVC_NAME }} --namespace ${{ inputs.K8S_NAMESPACE }}
+          fi
+        fi
+
+        helm upgrade --install ${{ inputs.SVC_NAME }} ${{ inputs.SVC_NAME }}/${SVC_CHART_NAME} \
           --namespace ${{ inputs.K8S_NAMESPACE }} \
           -f helm-values.yml
 
