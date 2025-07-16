@@ -162,10 +162,10 @@ jobs:
       JOB_STATUS: "failure"
       REPORT_INFO: "Please check the attachment"
       JOB_STATUS_MARK: ":x:"
-      COMMIT_AUTHOR: ${{ github.event.commits[0].author.name }}
+      PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+      PR_URL: "https://github.com/${{ github.repository }}/pull/${{ github.event.number }}"
       COMMIT_SHA: ${{ needs.javelin-env.outputs.short_sha }}
       SLACK_CHANNEL_ID: ${{ needs.javelin-env.outputs.slack_scan_channel_id }}
-      COMMIT_URL: ${{ github.event.head_commit.url }}
       BUILD_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
       GH_SEC_URL: "${{ github.server_url }}/${{ github.repository }}/security"
       SLACK_PAYLOAD_JSON: slack-trivy-scan-payload.json
