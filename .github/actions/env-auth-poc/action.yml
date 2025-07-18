@@ -1,0 +1,92 @@
+name: Composite Action - Environment Auth Details
+description: Authentication Details for the Deploy Environment
+
+inputs:
+  DEPLOY_ENV:
+    required: true
+    type: string
+outputs:
+  deploy_env:
+    value: ${{ steps.auth.outputs.deploy_env }}
+  cicd_sa:
+    value: ${{ steps.auth.outputs.cicd_sa }}
+  sql_secret:
+    value: ${{ steps.auth.outputs.sql_secret }}
+  cicd_role:
+    value: ${{ steps.auth.outputs.cicd_role }}
+  cicd_secret:
+    value: ${{ steps.auth.outputs.cicd_secret }}
+  cicd_secret_manual:
+    value: ${{ steps.auth.outputs.cicd_secret_manual }}
+  aws_account_id:
+    value: ${{ steps.auth.outputs.aws_account_id }}
+  gcp_wip_provider:
+    value: ${{ steps.auth.outputs.gcp_wip_provider }}
+  azure_client_id:
+    value: ${{ steps.auth.outputs.azure_client_id }}
+  azure_tenant_id:
+    value: ${{ steps.auth.outputs.azure_tenant_id }}
+  azure_subscription_id:
+    value: ${{ steps.auth.outputs.azure_subscription_id }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setting up Deploy Env
+      id: auth
+      shell: bash
+      run: |-
+        case "${{ inputs.DEPLOY_ENV }}" in
+          "dev1")
+              echo "deploy_env=${{ inputs.DEPLOY_ENV }}" >> ${GITHUB_OUTPUT}
+              echo "aws_account_id=${{ secrets.AWS_ACCOUNT_ID }}" >> ${GITHUB_OUTPUT}
+              echo "cicd_role=javelin-${{ inputs.DEPLOY_ENV }}-cicd-github-action" >> ${GITHUB_OUTPUT}
+              echo "sql_secret=javelin-${{ inputs.DEPLOY_ENV }}-aurora-postgres" >> ${GITHUB_OUTPUT}
+              echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
+              echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-cicd-manual" >> ${GITHUB_OUTPUT}
+            ;;
+          "dev2")
+              echo "deploy_env=${{ inputs.DEPLOY_ENV }}" >> ${GITHUB_OUTPUT}
+              echo "aws_account_id=${{ secrets.AWS_ACCOUNT_ID }}" >> ${GITHUB_OUTPUT}
+              echo "cicd_role=javelin-${{ inputs.DEPLOY_ENV }}-cicd-github-action" >> ${GITHUB_OUTPUT}
+              echo "sql_secret=javelin-${{ inputs.DEPLOY_ENV }}-aurora-postgres" >> ${GITHUB_OUTPUT}
+              echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
+              echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-cicd-manual" >> ${GITHUB_OUTPUT}
+            ;;
+          "demo")
+              echo "deploy_env=${{ inputs.DEPLOY_ENV }}" >> ${GITHUB_OUTPUT}
+              echo "cicd_sa=javelin-${{ inputs.DEPLOY_ENV }}-cicd-gh-sa@javelin-stage.iam.gserviceaccount.com" >> ${GITHUB_OUTPUT}
+              echo "sql_secret=javelin-${{ inputs.DEPLOY_ENV }}-postgres" >> ${GITHUB_OUTPUT}
+              echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
+              echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-cicd-manual" >> ${GITHUB_OUTPUT}
+              echo "gcp_wip_provider=${{ secrets.GCP_WIP_PROVIDER }}" >> ${GITHUB_OUTPUT}
+            ;;
+          "stage")
+              echo "deploy_env=${{ inputs.DEPLOY_ENV }}" >> ${GITHUB_OUTPUT}
+              echo "cicd_sa=javelin-${{ inputs.DEPLOY_ENV }}-cicd-gh-sa@javelin-stage.iam.gserviceaccount.com" >> ${GITHUB_OUTPUT}
+              echo "sql_secret=javelin-${{ inputs.DEPLOY_ENV }}-postgres" >> ${GITHUB_OUTPUT}
+              echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
+              echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-cicd-manual" >> ${GITHUB_OUTPUT}
+              echo "gcp_wip_provider=${{ secrets.GCP_WIP_PROVIDER }}" >> ${GITHUB_OUTPUT}
+            ;;
+          "saas")
+              echo "deploy_env=${{ inputs.DEPLOY_ENV }}" >> ${GITHUB_OUTPUT}
+              echo "cicd_sa=javelin-${{ inputs.DEPLOY_ENV }}-cicd-gh-sa@javelin-saas.iam.gserviceaccount.com" >> ${GITHUB_OUTPUT}
+              echo "sql_secret=javelin-${{ inputs.DEPLOY_ENV }}-postgres" >> ${GITHUB_OUTPUT}
+              echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
+              echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-cicd-manual" >> ${GITHUB_OUTPUT}
+              echo "gcp_wip_provider=${{ secrets.GCP_SAAS_WIP_PROVIDER }}" >> ${GITHUB_OUTPUT}
+            ;;
+          "stage1")
+              echo "deploy_env=${{ inputs.DEPLOY_ENV }}" >> ${GITHUB_OUTPUT}
+              echo "azure_client_id=4dc2bf70-d432-4e63-b482-86cb0627b9e3" >> ${GITHUB_OUTPUT}
+              echo "azure_tenant_id=036194f8-f30f-4614-b51d-04114b45e3cb" >> ${GITHUB_OUTPUT}
+              echo "azure_subscription_id=${{ secrets.AZURE_SUBSCRIPTION_ID }}" >> ${GITHUB_OUTPUT}
+              echo "sql_secret=javelin-${{ inputs.DEPLOY_ENV }}-postgres" >> ${GITHUB_OUTPUT}
+              echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
+              echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-manual" >> ${GITHUB_OUTPUT}
+            ;;
+          *)
+              echo "Failed to find the Authentication details for ${{ inputs.DEPLOY_ENV }}"
+            ;;
+        esac
