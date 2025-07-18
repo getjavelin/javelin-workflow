@@ -123,13 +123,21 @@ jobs:
           token: ${{ secrets.DEVOPS_GITHUB_TOKEN }}
           persist-credentials: true
 
+      - name: Cloud Config
+        id: cloud_config
+        uses: getjavelin/javelin-workflow/.github/actions/cloud-config@main
+        with:
+          CLOUD_PROVIDER: "aws"
+          DEPLOY_ENV: "dev1"
+          SVC_NAME: ${{ env.SVC_NAME }}
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: "arn:aws:iam::${{ vars.AWS_ACCOUNT_ID }}:role/${{ env.CICD_ROLE }}"
+          role-to-assume: "arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ env.CICD_ROLE }}"
           role-session-name: ${{ env.CICD_ROLE }}
           audience: sts.amazonaws.com
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ steps.cloud_config.outputs.deploy_region }}
 
       - name: Get CICD Manual Secret from AWS Secret Manager
         uses: aws-actions/aws-secretsmanager-get-secrets@v2
