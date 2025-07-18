@@ -18,14 +18,10 @@ outputs:
     value: ${{ steps.auth.outputs.cicd_secret }}
   cicd_secret_manual:
     value: ${{ steps.auth.outputs.cicd_secret_manual }}
-  wip_provider:
-    value: ${{ steps.auth.outputs.wip_provider }}
   client_id:
     value: ${{ steps.auth.outputs.client_id }}
   tenant_id:
     value: ${{ steps.auth.outputs.tenant_id }}
-  subscription_id:
-    value: ${{ steps.auth.outputs.subscription_id }}
 
 runs:
   using: "composite"
@@ -55,7 +51,6 @@ runs:
               echo "sql_secret=javelin-${{ inputs.DEPLOY_ENV }}-postgres" >> ${GITHUB_OUTPUT}
               echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
               echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-cicd-manual" >> ${GITHUB_OUTPUT}
-              echo "wip_provider=projects/391144039483/locations/global/workloadIdentityPools/github-wip/providers/github-wip" >> ${GITHUB_OUTPUT}
             ;;
           "stage")
               echo "deploy_env=${{ inputs.DEPLOY_ENV }}" >> ${GITHUB_OUTPUT}
@@ -63,7 +58,6 @@ runs:
               echo "sql_secret=javelin-${{ inputs.DEPLOY_ENV }}-postgres" >> ${GITHUB_OUTPUT}
               echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
               echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-cicd-manual" >> ${GITHUB_OUTPUT}
-              echo "wip_provider=projects/391144039483/locations/global/workloadIdentityPools/github-wip/providers/github-wip" >> ${GITHUB_OUTPUT}
             ;;
           "saas")
               echo "deploy_env=${{ inputs.DEPLOY_ENV }}" >> ${GITHUB_OUTPUT}
@@ -71,13 +65,11 @@ runs:
               echo "sql_secret=javelin-${{ inputs.DEPLOY_ENV }}-postgres" >> ${GITHUB_OUTPUT}
               echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
               echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-cicd-manual" >> ${GITHUB_OUTPUT}
-              echo "wip_provider=projects/255962185692/locations/global/workloadIdentityPools/github-wip/providers/github-wip" >> ${GITHUB_OUTPUT}
             ;;
-          "staging")
+          "stage1")
               echo "deploy_env=${{ inputs.DEPLOY_ENV }}" >> ${GITHUB_OUTPUT}
-              echo "client_id=89df0da7-1419-41f7-ab12-77949178ab2a" >> ${GITHUB_OUTPUT}
+              echo "client_id=4dc2bf70-d432-4e63-b482-86cb0627b9e3" >> ${GITHUB_OUTPUT}
               echo "tenant_id=036194f8-f30f-4614-b51d-04114b45e3cb" >> ${GITHUB_OUTPUT}
-              echo "subscription_id=124af0fd-8168-4247-a7f1-f6c08830f479" >> ${GITHUB_OUTPUT}
               echo "sql_secret=javelin-${{ inputs.DEPLOY_ENV }}-postgres" >> ${GITHUB_OUTPUT}
               echo "cicd_secret=javelin-${{ inputs.DEPLOY_ENV }}-cicd" >> ${GITHUB_OUTPUT}
               echo "cicd_secret_manual=javelin-${{ inputs.DEPLOY_ENV }}-manual" >> ${GITHUB_OUTPUT}
