@@ -123,6 +123,16 @@ jobs:
           token: ${{ secrets.DEVOPS_GITHUB_TOKEN }}
           persist-credentials: true
 
+      - name: DevOps Repository Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: "${{ github.repository_owner }}/${{ env.DEVOPS_REPO }}"
+          token: ${{ secrets.DEVOPS_GITHUB_TOKEN }}
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ env.DEVOPS_BRANCH }}
+          path: ${{ env.DEVOPS_REPO }}
+
       - name: Cloud Config
         id: cloud_config
         uses: getjavelin/javelin-workflow/.github/actions/cloud-config@main
